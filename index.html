@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pathology Report Generator</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="container">
+  <h1>🧪 Pathology Report Generator</h1>
+
+  <!-- Patient Info -->
+  <section class="card">
+    <h2>Patient Details</h2>
+    <input id="name" placeholder="Patient Name" />
+    <input id="age" placeholder="Age" />
+    <select id="gender">
+      <option>Male</option>
+      <option>Female</option>
+    </select>
+  </section>
+
+  <!-- Report Selection -->
+  <section class="card">
+    <h2>Select Report</h2>
+    <select id="reportType" onchange="loadReport()">
+      <option value="">-- Select --</option>
+      <option value="cbc">CBC</option>
+      <option value="lft">LFT</option>
+    </select>
+  </section>
+
+  <!-- Dynamic Inputs -->
+  <section class="card" id="inputs"></section>
+
+  <button onclick="generatePDF()">📄 Generate PDF</button>
+</div>
+
+<script src="reports.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

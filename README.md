@@ -15,6 +15,7 @@ A professional medical laboratory report generation system built with React and 
 npm run install-all
 
 # Build and start production server
+npm run build
 npm run prod
 ```
 
@@ -72,7 +73,7 @@ pathology/
 
 - `npm run install-all` - Install dependencies for both frontend and backend
 - `npm run build` - Build React frontend to static files
-- `npm run prod` - Build and start production server
+- `npm run prod` - Start the production server using an existing frontend build
 - `npm run dev` - Start development servers
 - `npm run test:dev` - Test production build with single server
 
@@ -85,8 +86,9 @@ For detailed installation and setup instructions, see [SETUP.md](SETUP.md).
 If you encounter issues:
 1. Make sure Node.js v16+ is installed
 2. Run `npm run install-all` to install dependencies
-3. For production: `npm run prod`
-4. For development: `npm run dev`
+3. Build the frontend: `npm run build`
+4. Start the production server: `npm run prod`
+5. For development: `npm run dev`
 
 ## 📄 License
 

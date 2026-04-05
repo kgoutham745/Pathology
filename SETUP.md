@@ -14,6 +14,7 @@
 npm run install-all
 
 # Build and start production server
+npm run build
 npm run prod
 ```
 

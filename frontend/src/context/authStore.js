@@ -1,4 +1,5 @@
 import create from 'zustand';
+import { accountAPI } from '../utils/api';
 
 const parseJwt = (token) => {
   try {
@@ -18,6 +19,15 @@ const getInitialToken = () => {
 
 const getInitialUser = () => {
   if (typeof window === 'undefined') return null;
+  const storedUser = localStorage.getItem('authUser');
+  if (storedUser) {
+    try {
+      return JSON.parse(storedUser);
+    } catch (error) {
+      return null;
+    }
+  }
+
   const token = localStorage.getItem('authToken');
   return token ? parseJwt(token) : null;
 };
@@ -25,19 +35,32 @@ const getInitialUser = () => {
 const useAuthStore = create((set) => ({
   token: getInitialToken(),
   user: getInitialUser(),
+  isLoggedIn: !!getInitialToken(),
   login: (token, user) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('authToken', token);
+      localStorage.setItem('authUser', JSON.stringify(user));
     }
-    set({ token, user });
+    set({ token, user, isLoggedIn: true });
+  },
+  refreshUser: async () => {
+    if (typeof window === 'undefined') return;
+    try {
+      const response = await accountAPI.getMe();
+      const refreshedUser = response.data;
+      localStorage.setItem('authUser', JSON.stringify(refreshedUser));
+      set({ user: refreshedUser });
+    } catch (error) {
+      console.error('Unable to refresh user account information:', error);
+    }
   },
   logout: () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
     }
-    set({ token: '', user: null });
+    set({ token: '', user: null, isLoggedIn: false });
   },
-  isLoggedIn: false,
 }));
 
 export default useAuthStore;

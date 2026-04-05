@@ -29,7 +29,7 @@ const ReportCard = ({ report, onDelete, onEdit, onView }) => {
         return;
       }
 
-      const pdf = await generatePDFReport(report, labSettings);
+      const pdf = await generatePDFReport(report, labSettings, labSettings?.pdfTemplate);
       downloadPDF(pdf, `Report_${report.reportId}`);
     } catch (error) {
       console.error('Error downloading PDF:', error);
@@ -51,7 +51,7 @@ const ReportCard = ({ report, onDelete, onEdit, onView }) => {
             <h3 className='text-lg font-bold text-gray-900 dark:text-white'>{report.patient.name}</h3>
             <p className='text-sm text-gray-500 dark:text-gray-400'>Report ID: {report.reportId}</p>
           </div>
-          <div className='text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full'>
+          <div className='text-xs bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-100 px-3 py-1 rounded-full'>
             {report.test.testName}
           </div>
         </div>

@@ -1,14 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Header from './components/Header';
-import Footer from './components/Footer';
 import Dashboard from './pages/Dashboard';
 import ReportGenerator from './pages/ReportGenerator';
 import ReportHistory from './pages/ReportHistory';
 import LabSettings from './pages/LabSettings';
 import Login from './pages/Login';
 import AdminPanel from './pages/AdminPanel';
-import useThemeStore from './context/themeStore';
+import About from './pages/About';
 import useAuthStore from './context/authStore';
 
 const PrivateRoute = ({ children, roles = [] }) => {
@@ -28,31 +27,37 @@ const PrivateRoute = ({ children, roles = [] }) => {
 };
 
 function App() {
-  const { isDarkMode, initTheme } = useThemeStore();
+  const token = useAuthStore((state) => state.token);
+  const refreshUser = useAuthStore((state) => state.refreshUser);
 
-  React.useEffect(() => {
-    initTheme();
-  }, []);
+  useEffect(() => {
+    if (token) {
+      refreshUser();
+    }
+  }, [token, refreshUser]);
 
   return (
-    <div className={isDarkMode ? 'dark' : ''}>
+    <div>
       <Router>
-        <div className='min-h-screen bg-white dark:bg-gray-900 flex flex-col'>
-          <Header />
+        <div className='min-h-screen text-slate-900'>
+          <div className='flex min-h-screen'>
+            <Header />
 
-          <main className='flex-1 max-w-7xl w-full mx-auto px-4 py-8'>
-            <Routes>
-              <Route path='/login' element={<Login />} />
-              <Route path='/' element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-              <Route path='/generate' element={<PrivateRoute><ReportGenerator /></PrivateRoute>} />
-              <Route path='/history' element={<PrivateRoute><ReportHistory /></PrivateRoute>} />
-              <Route path='/settings' element={<PrivateRoute><LabSettings /></PrivateRoute>} />
-              <Route path='/admin' element={<PrivateRoute roles={['master']}><AdminPanel /></PrivateRoute>} />
-              <Route path='*' element={<Navigate to='/' replace />} />
-            </Routes>
-          </main>
-
-          <Footer />
+            <div className='flex-1 flex flex-col'>
+              <main className='flex-1 max-w-full w-full mx-auto px-4 py-6 md:px-8 md:py-8'>
+                <Routes>
+                  <Route path='/login' element={<Login />} />
+                  <Route path='/about' element={<About />} />
+                  <Route path='/' element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+                  <Route path='/generate' element={<PrivateRoute><ReportGenerator /></PrivateRoute>} />
+                  <Route path='/history' element={<PrivateRoute><ReportHistory /></PrivateRoute>} />
+                  <Route path='/settings' element={<PrivateRoute><LabSettings /></PrivateRoute>} />
+                  <Route path='/admin' element={<PrivateRoute roles={['master']}><AdminPanel /></PrivateRoute>} />
+                  <Route path='*' element={<Navigate to='/' replace />} />
+                </Routes>
+              </main>
+            </div>
+          </div>
         </div>
       </Router>
     </div>

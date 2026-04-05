@@ -23,7 +23,10 @@ const reportSchema = new mongoose.Schema({
   test: {
     testId: String,
     testName: String,
-    testType: String
+    testType: String,
+    description: String,
+    sampleType: String,
+    turnaroundTime: String
   },
   results: [{
     parameterId: String,
@@ -44,7 +47,14 @@ const reportSchema = new mongoose.Schema({
     address: String,
     phone: String,
     email: String,
-    logo: String
+    logo: String,
+    templateName: String,
+    headerTitle: String,
+    headerSubtitle: String,
+    contactLine: String,
+    footerText: String,
+    primaryColor: String,
+    accentColor: String
   },
   notes: String,
   signature: String,

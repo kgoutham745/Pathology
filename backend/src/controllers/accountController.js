@@ -1,7 +1,6 @@
 import bcrypt from 'bcrypt';
 import Account from '../models/Account.js';
-import Report from '../models/Report.js';
-import TestTemplate from '../models/TestTemplate.js';
+import { evaluateAccountAccess, getAccountUsage } from '../utils/license.js';
 
 const SALT_ROUNDS = 10;
 
@@ -9,13 +8,11 @@ export const getAccounts = async (req, res) => {
   try {
     const accounts = await Account.find().select('-passwordHash');
     const accountsWithUsage = await Promise.all(accounts.map(async (account) => {
-      const templatesCount = await TestTemplate.countDocuments({ createdBy: account._id, active: true });
-      const currentMonthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-      const reportsThisMonth = await Report.countDocuments({ createdBy: account._id, 'dates.reportDate': { $gte: currentMonthStart } });
+      const usage = await getAccountUsage(account._id);
       return {
         ...account.toObject(),
-        templatesCount,
-        reportsThisMonth
+        ...usage,
+        licenseStatus: evaluateAccountAccess(account, usage)
       };
     }));
     res.json(accountsWithUsage);
@@ -44,15 +41,40 @@ export const createAccount = async (req, res) => {
       companyName,
       phone,
       passwordHash,
+      role: 'lab_technician',
       license: {
         templateLimit: license?.templateLimit ?? 10,
         monthlyReportLimit: license?.monthlyReportLimit ?? 50,
+        validUntil: license?.validUntil ? new Date(license.validUntil) : undefined,
+        expiryType: license?.expiryType || 'count',
         features: license?.features ?? { customTemplates: true, reportDesigner: false }
       }
     });
 
     await account.save();
     res.status(201).json({ ...account.toObject(), passwordHash: undefined });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getCurrentAccount = async (req, res) => {
+  try {
+    if (req.user.role === 'master') {
+      return res.json({ role: 'master', username: req.user.username });
+    }
+
+    const account = await Account.findById(req.user.userId).select('-passwordHash');
+    if (!account) return res.status(404).json({ error: 'Account not found' });
+
+    const usage = await getAccountUsage(account._id);
+    const licenseStatus = evaluateAccountAccess(account, usage);
+
+    return res.json({
+      ...account.toObject(),
+      ...usage,
+      licenseStatus
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -70,13 +92,28 @@ export const getAccount = async (req, res) => {
 
 export const updateAccount = async (req, res) => {
   try {
+    const existingAccount = await Account.findById(req.params.id);
+    if (!existingAccount) return res.status(404).json({ error: 'Account not found' });
+
     const updateData = { ...req.body, updatedAt: new Date() };
     if (req.body.password) {
       updateData.passwordHash = await bcrypt.hash(req.body.password, SALT_ROUNDS);
       delete updateData.password;
     }
+
+    if (req.body.license) {
+      updateData.license = {
+        ...existingAccount.license.toObject(),
+        ...req.body.license
+      };
+      if (req.body.license.validUntil) {
+        updateData.license.validUntil = new Date(req.body.license.validUntil);
+      } else if (req.body.license.validUntil === '') {
+        updateData.license.validUntil = undefined;
+      }
+    }
+
     const account = await Account.findByIdAndUpdate(req.params.id, updateData, { new: true }).select('-passwordHash');
-    if (!account) return res.status(404).json({ error: 'Account not found' });
     res.json(account);
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -39,12 +39,19 @@ const ReportHistory = () => {
       setFilteredReports(reports);
     } else {
       const query = searchQuery.toLowerCase();
-      const filtered = reports.filter(
-        (report) =>
+      const filtered = reports.filter((report) => {
+        const reportDate = report.dates?.reportDate ? new Date(report.dates.reportDate).toLocaleDateString() : '';
+        return (
           report.patient.name.toLowerCase().includes(query) ||
           report.patient.patientId.toLowerCase().includes(query) ||
-          report.reportId.toLowerCase().includes(query)
-      );
+          report.reportId.toLowerCase().includes(query) ||
+          (report.patient.doctorName || '').toLowerCase().includes(query) ||
+          (report.patient.contactNo || '').toLowerCase().includes(query) ||
+          (report.test?.testName || '').toLowerCase().includes(query) ||
+          (report.test?.testType || '').toLowerCase().includes(query) ||
+          reportDate.toLowerCase().includes(query)
+        );
+      });
       setFilteredReports(filtered);
     }
   }, [searchQuery, reports]);
@@ -98,7 +105,7 @@ const ReportHistory = () => {
       <div className='relative'>
         <Search className='absolute left-3 top-3 text-gray-400' size={20} />
         <Input
-          placeholder='Search by patient name, ID, or report ID...'
+          placeholder='Search by patient name, doctor, report type, phone, ID or date...'
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className='pl-10'
@@ -115,9 +122,9 @@ const ReportHistory = () => {
           </div>
         </Card>
       ) : (
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+        <div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]'>
           {/* Reports List */}
-          <div className='lg:col-span-2'>
+          <div className='min-w-0'>
             {viewMode === 'card' ? (
               <div className='space-y-4'>
                 {filteredReports.map((report) => (
@@ -180,14 +187,14 @@ const ReportHistory = () => {
           </div>
 
           {/* Report Preview */}
-          <div className='lg:col-span-1'>
+          <div className='min-w-0'>
             {selectedReport ? (
               <motion.div
-                className='sticky top-24'
+                className='xl:sticky xl:top-24'
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
               >
-                <Card>
+                <Card className='overflow-hidden p-5'>
                   <div className='flex justify-between items-center mb-4'>
                     <h3 className='font-bold text-lg'>Preview</h3>
                     <button
@@ -203,7 +210,7 @@ const ReportHistory = () => {
             ) : (
               <Card>
                 <p className='text-center text-gray-500 dark:text-gray-400 py-8'>
-                  Selecta report to preview
+                  Select a report to preview
                 </p>
               </Card>
             )}

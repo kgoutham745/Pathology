@@ -3,49 +3,65 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #2563eb;
-  --secondary-color: #10b981;
-  --danger-color: #ef4444;
-  --warning-color: #f59e0b;
-  --dark: #0f172a;
-  --light: #f8fafc;
+  --brand-900: #312e81;
+  --brand-800: #4c1d95;
+  --brand-700: #6d28d9;
+  --brand-accent: #8b5cf6;
+  --brand-accent-soft: #ede9fe;
+  --brand-amber: #f59e0b;
+  --surface: #f7f5ff;
+  --surface-card: rgba(255, 255, 255, 0.9);
+  --line: rgba(91, 33, 182, 0.14);
+  --text: #221b46;
+  --muted: #746e97;
+  --danger: #d64545;
+  --success: #188a68;
 }
 
-* {
-  @apply transition-colors duration-200;
+html {
+  background:
+    radial-gradient(circle at top left, rgba(139, 92, 246, 0.16), transparent 28%),
+    radial-gradient(circle at top right, rgba(236, 72, 153, 0.08), transparent 24%),
+    linear-gradient(180deg, #fcfbff 0%, #f4f1ff 100%);
 }
 
 body {
-  @apply bg-white dark:bg-slate-950 text-gray-900 dark:text-white;
+  color: var(--text);
+  background: transparent;
+  font-family: "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh;
 }
 
-/* Smooth transitions */
+#root {
+  min-height: 100vh;
+}
+
+* {
+  @apply antialiased;
+}
+
 @layer components {
   .smooth-transition {
     @apply transition-all duration-300 ease-out;
   }
 
   .card-hover {
-    @apply hover:shadow-lg smooth-transition;
+    @apply hover:-translate-y-0.5 hover:shadow-[0_22px_48px_rgba(91,33,182,0.14)] smooth-transition;
   }
 
   .input-field {
-    @apply w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500;
+    @apply w-full rounded-2xl border px-4 py-3.5 text-[15px] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] outline-none transition;
+    border-color: var(--line);
+    background: rgba(255, 255, 255, 0.94);
+    color: var(--text);
   }
 
-  .btn-primary {
-    @apply px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold smooth-transition;
+  .input-field::placeholder {
+    color: #95a3b7;
   }
 
-  .btn-secondary {
-    @apply px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-semibold smooth-transition;
-  }
-
-  .badge-abnormal {
-    @apply bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 px-3 py-1 rounded-full text-sm font-semibold;
-  }
-
-  .badge-normal {
-    @apply bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-sm font-semibold;
+  .input-field:focus {
+    border-color: rgba(139, 92, 246, 0.55);
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.12);
   }
 }

@@ -1,137 +1,154 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Menu, X, Moon, Sun, LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import useThemeStore from '../context/themeStore';
+import { Menu, X, LogOut, Home, FileText, Clock, Settings, ShieldCheck, FlaskConical, Info, Sparkles } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../context/authStore';
 
 const Header = () => {
   const navigate = useNavigate();
-  const { isDarkMode, toggleTheme, initTheme } = useThemeStore();
+  const location = useLocation();
   const logout = useAuthStore((state) => state.logout);
   const isLoggedIn = useAuthStore((state) => !!state.token);
   const user = useAuthStore((state) => state.user);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  React.useEffect(() => {
-    initTheme();
-  }, []);
-
   const menuItems = isLoggedIn
     ? [
-        { label: 'Dashboard', path: '/' },
-        { label: 'Generate Report', path: '/generate' },
-        { label: 'Report History', path: '/history' },
-        { label: 'Lab Settings', path: '/settings' },
-        ...(user?.role === 'master' ? [{ label: 'Admin', path: '/admin' }] : [])
+        { label: 'Dashboard', path: '/', icon: Home },
+        { label: 'Generate', path: '/generate', icon: FileText },
+        { label: 'Reports', path: '/history', icon: Clock },
+        { label: 'Lab Settings', path: '/settings', icon: Settings },
+        { label: 'About', path: '/about', icon: Info },
+        ...(user?.role === 'master' ? [{ label: 'Admin', path: '/admin', icon: ShieldCheck }] : [])
       ]
-    : [{ label: 'Login', path: '/login' }];
+    : [
+        { label: 'About', path: '/about', icon: Info },
+        { label: 'Login', path: '/login', icon: Home }
+      ];
+
+  const getNavItemClass = (path) => (
+    `w-full rounded-2xl px-4 py-3 text-left transition flex items-center gap-3 text-sm font-medium ${
+      location.pathname === path
+        ? 'bg-white text-slate-900 shadow-[0_12px_24px_rgba(15,39,64,0.14)]'
+        : 'text-slate-200/88 hover:bg-white/12 hover:text-white'
+    }`
+  );
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  return (
-    <motion.header
-      className='bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg text-white sticky top-0 z-40'
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className='max-w-7xl mx-auto px-4 py-4 flex justify-between items-center'>
-        {/* Logo */}
-        <motion.div
-          className='flex items-center gap-2 cursor-pointer'
-          whileHover={{ scale: 1.05 }}
-          onClick={() => navigate('/')}
-        >
-          <div className='text-2xl font-bold'>🧪</div>
-          <div>
-            <h1 className='text-2xl font-bold'>Pathology Report</h1>
-            <p className='text-xs opacity-90'>Medical Lab System</p>
-          </div>
-        </motion.div>
-
-        {/* Desktop Menu */}
-        <div className='hidden md:flex items-center gap-6'>
-          {menuItems.map((item) => (
-            <motion.button
-              key={item.path}
-              onClick={() => navigate(item.path)}
-              className='hover:bg-blue-500 px-4 py-2 rounded-lg transition-colors'
-              whileHover={{ scale: 1.05 }}
-            >
-              {item.label}
-            </motion.button>
-          ))}
-          {isLoggedIn && (
-            <motion.button
-              onClick={handleLogout}
-              className='flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 transition-colors'
-              whileHover={{ scale: 1.05 }}
-            >
-              <LogOut size={16} />
-              Logout
-            </motion.button>
-          )}
+  const UserMeta = () => (
+    <div className='rounded-3xl border border-white/10 bg-white/10 p-4 text-white/90'>
+      <div className='flex items-center gap-3'>
+        <div className='flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15'>
+          {user?.role === 'master' ? <ShieldCheck size={18} /> : <FlaskConical size={18} />}
         </div>
-
-        {/* Theme Toggle & Mobile Menu */}
-        <div className='flex items-center gap-3'>
-          <motion.button
-            onClick={toggleTheme}
-            className='p-2 hover:bg-blue-500 rounded-lg'
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </motion.button>
-
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className='md:hidden p-2 hover:bg-blue-500 rounded-lg'
-          >
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+        <div>
+          <p className='text-sm font-semibold'>{user?.name || user?.username || 'Pathora Labs'}</p>
+          <p className='text-xs text-slate-300'>{user?.role === 'master' ? 'Control workspace' : 'Lab operations workspace'}</p>
         </div>
       </div>
+    </div>
+  );
 
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <motion.div
-          className='md:hidden bg-blue-700 px-4 py-3 space-y-2'
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          {menuItems.map((item) => (
-            <motion.button
-              key={item.path}
-              onClick={() => {
-                navigate(item.path);
-                setMenuOpen(false);
-              }}
-              className='block w-full text-left px-4 py-2 hover:bg-blue-600 rounded-lg'
-              whileHover={{ x: 10 }}
-            >
-              {item.label}
-            </motion.button>
-          ))}
-          {isLoggedIn && (
-            <motion.button
-              onClick={() => {
-                handleLogout();
-                setMenuOpen(false);
-              }}
-              className='block w-full text-left px-4 py-2 hover:bg-blue-600 rounded-lg'
-              whileHover={{ x: 10 }}
-            >
-              Logout
-            </motion.button>
-          )}
-        </motion.div>
-      )}
-    </motion.header>
+  return (
+    <>
+      <motion.header
+        className='sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur md:hidden'
+        initial={{ y: -60 }}
+        animate={{ y: 0 }}
+      >
+        <div className='flex items-center justify-between px-4 py-3'>
+          <button className='flex items-center gap-3' onClick={() => navigate('/')}>
+            <img src='/pathora-logo.svg' alt='Pathora Labs logo' className='h-11 w-11 rounded-2xl shadow-lg' />
+            <div className='text-left'>
+              <h1 className='text-base font-bold text-slate-900'>Pathora Labs</h1>
+              <p className='text-xs text-slate-500'>Smart pathology workspace</p>
+            </div>
+          </button>
+
+          <div className='flex items-center gap-2'>
+            {isLoggedIn && (
+              <button onClick={handleLogout} className='rounded-xl p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800' aria-label='Logout'>
+                <LogOut size={18} />
+              </button>
+            )}
+            <button onClick={() => setMenuOpen((value) => !value)} className='rounded-xl p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800' aria-label='Toggle navigation menu'>
+              {menuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+        </div>
+
+        {menuOpen && (
+          <motion.div className='space-y-2 border-t border-slate-200 px-4 py-4' initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => {
+                    navigate(item.path);
+                    setMenuOpen(false);
+                  }}
+                  className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium ${
+                    location.pathname === item.path ? 'bg-violet-700 text-white' : 'bg-slate-50 text-slate-700'
+                  }`}
+                >
+                  <Icon size={18} />
+                  {item.label}
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </motion.header>
+
+      <aside className='hidden min-h-screen w-80 shrink-0 flex-col bg-[linear-gradient(180deg,#4c1d95_0%,#312e81_55%,#1e1b4b_100%)] px-5 py-6 text-white md:flex'>
+        <button className='flex items-center gap-4 rounded-[28px] bg-white/10 px-5 py-5 text-left' onClick={() => navigate('/')}>
+          <img src='/pathora-logo.svg' alt='Pathora Labs logo' className='h-14 w-14 rounded-3xl shadow-xl' />
+          <div>
+            <h1 className='text-xl font-bold tracking-tight'>Pathora Labs</h1>
+            <p className='text-sm text-slate-300'>Professional pathology workspace</p>
+          </div>
+        </button>
+
+        <div className='mt-6'>
+          {isLoggedIn && <UserMeta />}
+        </div>
+
+        {isLoggedIn && (
+          <button
+            onClick={handleLogout}
+            className='mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-white/12 px-4 py-3 font-semibold text-white ring-1 ring-white/15 transition hover:bg-white/18'
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
+        )}
+
+        <nav className='mt-6 flex-1 space-y-2'>
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button key={item.path} onClick={() => navigate(item.path)} className={getNavItemClass(item.path)}>
+                <Icon size={18} />
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className='rounded-3xl border border-white/10 bg-white/8 p-4 text-sm text-violet-100/85'>
+          <div className='mb-2 flex items-center gap-2 font-semibold text-white'>
+            <Sparkles size={16} />
+            Precision Reporting
+          </div>
+          Clean diagnostics, faster handoff, and a better report experience for labs and clinicians.
+        </div>
+      </aside>
+    </>
   );
 };
 

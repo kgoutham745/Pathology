@@ -1,5 +1,4 @@
 import TestTemplate from '../models/TestTemplate.js';
-import Account from '../models/Account.js';
 
 export const getAllTests = async (req, res) => {
   try {
@@ -44,16 +43,6 @@ export const getTestByTestId = async (req, res) => {
 export const createTest = async (req, res) => {
   try {
     const { testId, testName, testType, parameters, sampleType, turnaroundTime, price } = req.body;
-
-    if (req.user.role !== 'master') {
-      const account = await Account.findById(req.user.userId);
-      if (!account) return res.status(401).json({ error: 'Account not found' });
-
-      const currentCount = await TestTemplate.countDocuments({ createdBy: account._id, active: true });
-      if (currentCount >= account.license.templateLimit) {
-        return res.status(403).json({ error: 'Template limit reached for this account.' });
-      }
-    }
 
     const newTest = new TestTemplate({
       createdBy: req.user.role === 'master' ? null : req.user.userId,

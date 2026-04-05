@@ -561,6 +561,157 @@ export const testTemplates = {
   }
 };
 
+Object.assign(testTemplates, {
+  esr: {
+    testId: 'esr',
+    testName: 'Erythrocyte Sedimentation Rate (ESR)',
+    testType: 'Hematology',
+    description: 'A screening marker that helps evaluate inflammation or infection.',
+    sampleType: 'EDTA Whole Blood',
+    turnaroundTime: '24 hours',
+    parameters: [
+      {
+        parameterId: 'esr_value',
+        parameterName: 'ESR',
+        unit: 'mm/hr',
+        normalRange: '0-20',
+        normalRangeMin: 0,
+        normalRangeMax: 20,
+        description: 'Sedimentation rate of red blood cells'
+      }
+    ]
+  },
+  crp: {
+    testId: 'crp',
+    testName: 'C-Reactive Protein (CRP)',
+    testType: 'Immunology',
+    description: 'Used to assess acute inflammation, infection, and response to treatment.',
+    sampleType: 'Serum',
+    turnaroundTime: '24 hours',
+    parameters: [
+      {
+        parameterId: 'crp_value',
+        parameterName: 'CRP',
+        unit: 'mg/L',
+        normalRange: '<5',
+        normalRangeMin: 0,
+        normalRangeMax: 5,
+        description: 'Acute phase inflammatory marker'
+      }
+    ]
+  },
+  dengue: {
+    testId: 'dengue',
+    testName: 'Dengue Profile',
+    testType: 'Serology',
+    description: 'Supports diagnosis of dengue infection through antigen and antibody markers.',
+    sampleType: 'Serum',
+    turnaroundTime: '24 hours',
+    parameters: [
+      { parameterId: 'ns1', parameterName: 'NS1 Antigen', unit: 'Result', normalRange: 'Negative', description: 'Early dengue marker' },
+      { parameterId: 'igm', parameterName: 'Dengue IgM', unit: 'Result', normalRange: 'Negative', description: 'Recent infection marker' },
+      { parameterId: 'igg', parameterName: 'Dengue IgG', unit: 'Result', normalRange: 'Negative', description: 'Past exposure marker' }
+    ]
+  },
+  malaria: {
+    testId: 'malaria',
+    testName: 'Malaria Parasite Test',
+    testType: 'Microbiology',
+    description: 'Screens for malarial parasite infection in peripheral blood.',
+    sampleType: 'Peripheral Blood',
+    turnaroundTime: '24 hours',
+    parameters: [
+      { parameterId: 'mp', parameterName: 'Malarial Parasite', unit: 'Result', normalRange: 'Negative', description: 'Presence of malaria parasite' },
+      { parameterId: 'species', parameterName: 'Species', unit: 'Text', normalRange: 'Not Detected', description: 'Detected malaria species if positive' }
+    ]
+  },
+  iron_profile: {
+    testId: 'iron_profile',
+    testName: 'Iron Profile',
+    testType: 'Biochemistry',
+    description: 'Assesses iron status in suspected anemia and nutritional deficiency.',
+    sampleType: 'Serum',
+    turnaroundTime: '24 hours',
+    parameters: [
+      { parameterId: 'serum_iron', parameterName: 'Serum Iron', unit: 'ug/dL', normalRange: '60-170', normalRangeMin: 60, normalRangeMax: 170, description: 'Circulating iron level' },
+      { parameterId: 'tibc', parameterName: 'TIBC', unit: 'ug/dL', normalRange: '240-450', normalRangeMin: 240, normalRangeMax: 450, description: 'Total iron binding capacity' },
+      { parameterId: 'ferritin', parameterName: 'Ferritin', unit: 'ng/mL', normalRange: '30-400', normalRangeMin: 30, normalRangeMax: 400, description: 'Iron stores marker' }
+    ]
+  },
+  cardiac_markers: {
+    testId: 'cardiac_markers',
+    testName: 'Cardiac Markers',
+    testType: 'Cardiology',
+    description: 'Supports evaluation of myocardial injury and acute cardiac events.',
+    sampleType: 'Serum',
+    turnaroundTime: '6 hours',
+    parameters: [
+      { parameterId: 'troponin', parameterName: 'Troponin I', unit: 'ng/mL', normalRange: '<0.04', normalRangeMin: 0, normalRangeMax: 0.04, description: 'Cardiac injury marker' },
+      { parameterId: 'ckmb', parameterName: 'CK-MB', unit: 'U/L', normalRange: '0-25', normalRangeMin: 0, normalRangeMax: 25, description: 'Cardiac muscle enzyme' }
+    ]
+  },
+  amylase_lipase: {
+    testId: 'amylase_lipase',
+    testName: 'Amylase & Lipase',
+    testType: 'Biochemistry',
+    description: 'Used in evaluating pancreatic inflammation and abdominal pain.',
+    sampleType: 'Serum',
+    turnaroundTime: '24 hours',
+    parameters: [
+      { parameterId: 'amylase', parameterName: 'Amylase', unit: 'U/L', normalRange: '30-110', normalRangeMin: 30, normalRangeMax: 110, description: 'Pancreatic and salivary enzyme' },
+      { parameterId: 'lipase', parameterName: 'Lipase', unit: 'U/L', normalRange: '13-60', normalRangeMin: 13, normalRangeMax: 60, description: 'Pancreatic enzyme marker' }
+    ]
+  },
+  stool_routine: {
+    testId: 'stool_routine',
+    testName: 'Stool Routine Examination',
+    testType: 'Microbiology',
+    description: 'Evaluates infection, bleeding, parasites, and digestive abnormalities.',
+    sampleType: 'Stool Sample',
+    turnaroundTime: '24 hours',
+    parameters: [
+      { parameterId: 'stool_color', parameterName: 'Color', unit: 'Visual', normalRange: 'Brown', description: 'Stool color appearance' },
+      { parameterId: 'stool_consistency', parameterName: 'Consistency', unit: 'Visual', normalRange: 'Formed', description: 'Stool consistency' },
+      { parameterId: 'occult_blood', parameterName: 'Occult Blood', unit: 'Result', normalRange: 'Negative', description: 'Hidden blood in stool' },
+      { parameterId: 'ova_cyst', parameterName: 'Ova / Cyst', unit: 'Result', normalRange: 'Not Seen', description: 'Parasitic elements in stool' }
+    ]
+  },
+  hiv_screening: {
+    testId: 'hiv_screening',
+    testName: 'HIV Screening',
+    testType: 'Serology',
+    description: 'Initial screening test for HIV infection.',
+    sampleType: 'Serum',
+    turnaroundTime: '24 hours',
+    parameters: [
+      { parameterId: 'hiv_result', parameterName: 'HIV 1 & 2', unit: 'Result', normalRange: 'Non Reactive', description: 'HIV screening result' }
+    ]
+  },
+  hepatitis_profile: {
+    testId: 'hepatitis_profile',
+    testName: 'Hepatitis Profile',
+    testType: 'Serology',
+    description: 'Screens for common hepatitis viral markers for liver infection evaluation.',
+    sampleType: 'Serum',
+    turnaroundTime: '24 hours',
+    parameters: [
+      { parameterId: 'hbsag', parameterName: 'HBsAg', unit: 'Result', normalRange: 'Negative', description: 'Hepatitis B surface antigen' },
+      { parameterId: 'anti_hcv', parameterName: 'Anti-HCV', unit: 'Result', normalRange: 'Negative', description: 'Hepatitis C antibody' }
+    ]
+  },
+  prolactin: {
+    testId: 'prolactin',
+    testName: 'Prolactin',
+    testType: 'Endocrinology',
+    description: 'Helps assess pituitary function and reproductive hormone imbalance.',
+    sampleType: 'Serum',
+    turnaroundTime: '24 hours',
+    parameters: [
+      { parameterId: 'prolactin_value', parameterName: 'Prolactin', unit: 'ng/mL', normalRange: '4-23', normalRangeMin: 4, normalRangeMax: 23, description: 'Pituitary hormone level' }
+    ]
+  }
+});
+
 export const getTestTemplate = (testId) => {
   return testTemplates[testId] || null;
 };

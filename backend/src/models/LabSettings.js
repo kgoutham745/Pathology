@@ -1,6 +1,35 @@
 import mongoose from 'mongoose';
 
+const reportTemplateSchema = new mongoose.Schema({
+  templateId: {
+    type: String,
+    required: true
+  },
+  templateName: {
+    type: String,
+    required: true
+  },
+  headerTitle: String,
+  headerSubtitle: String,
+  contactLine: String,
+  footerText: String,
+  logo: String,
+  primaryColor: {
+    type: String,
+    default: '#0f3d5e'
+  },
+  accentColor: {
+    type: String,
+    default: '#14b8a6'
+  }
+}, { _id: false });
+
 const labSettingsSchema = new mongoose.Schema({
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Account',
+    default: null
+  },
   labName: {
     type: String,
     required: true
@@ -13,6 +42,16 @@ const labSettingsSchema = new mongoose.Schema({
   footer: String,
   disclaimer: String,
   signature: String,
+  reportTemplates: {
+    type: [reportTemplateSchema],
+    default: []
+  },
+  defaultReportTemplateId: String,
+  pdfTemplate: {
+    type: String,
+    enum: ['classic', 'modern', 'compact'],
+    default: 'classic'
+  },
   reportFormat: {
     type: String,
     enum: ['standard', 'minimal', 'detailed'],

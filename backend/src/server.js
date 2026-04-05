@@ -11,6 +11,7 @@ import labRoutes from './routes/labRoutes.js';
 import testRoutes from './routes/testRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import accountRoutes from './routes/accountRoutes.js';
+import { getCurrentAccount } from './controllers/accountController.js';
 import { authenticate, authorize } from './middleware/authMiddleware.js';
 
 dotenv.config();
@@ -75,6 +76,9 @@ const startApp = async () => {
   app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Pathology Report Generator API is running' });
   });
+
+  // Account status endpoint for authenticated users
+  app.get('/api/account/me', authenticate, getCurrentAccount);
 
   // Account management for master admin only
   app.use('/api/admin/accounts', authenticate, authorize('master'), accountRoutes);

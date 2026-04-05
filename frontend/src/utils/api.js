@@ -78,4 +78,9 @@ export const adminAPI = {
   toggleAccountStatus: (id, active) => API.patch(`/admin/accounts/${id}/status`, { active })
 };
 
+// Account API
+export const accountAPI = {
+  getMe: () => API.get('/account/me'),
+};
+
 export default API;

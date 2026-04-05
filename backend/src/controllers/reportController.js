@@ -3,6 +3,7 @@ import Patient from '../models/Patient.js';
 import TestTemplate from '../models/TestTemplate.js';
 import Account from '../models/Account.js';
 import { generateReportId } from '../utils/helpers.js';
+import { evaluateAccountAccess, getAccountUsage } from '../utils/license.js';
 
 const getAbnormalStatus = (value, normalRange) => {
   const status = { isAbnormal: false, abnormalType: 'normal' };
@@ -67,11 +68,11 @@ export const createReport = async (req, res) => {
     if (req.user.role !== 'master') {
       const account = await Account.findById(req.user.userId);
       if (!account) return res.status(401).json({ error: 'Account not found' });
+      const usage = await getAccountUsage(account._id);
+      const licenseStatus = evaluateAccountAccess(account, usage);
 
-      const currentMonthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-      const reportsThisMonth = await Report.countDocuments({ createdBy: account._id, 'dates.reportDate': { $gte: currentMonthStart } });
-      if (reportsThisMonth >= account.license.monthlyReportLimit) {
-        return res.status(403).json({ error: 'Monthly report limit reached for this account.' });
+      if (!licenseStatus.reportGenerationAllowed) {
+        return res.status(403).json({ error: licenseStatus.reasons[0] || 'Report generation is not allowed for this account.' });
       }
     }
 
@@ -203,9 +204,20 @@ export const searchReports = async (req, res) => {
       $or: [
         { 'patient.name': { $regex: query, $options: 'i' } },
         { 'patient.patientId': { $regex: query, $options: 'i' } },
-        { reportId: { $regex: query, $options: 'i' } }
+        { reportId: { $regex: query, $options: 'i' } },
+        { 'patient.doctorName': { $regex: query, $options: 'i' } },
+        { 'patient.contactNo': { $regex: query, $options: 'i' } },
+        { 'test.testName': { $regex: query, $options: 'i' } },
+        { 'test.testType': { $regex: query, $options: 'i' } }
       ]
     };
+
+    const parsedDate = new Date(query);
+    if (!isNaN(parsedDate)) {
+      const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
+      searchQuery.$or.push({ 'dates.reportDate': { $gte: startOfDay, $lte: endOfDay } });
+    }
     if (req.user.role !== 'master') {
       searchQuery.createdBy = req.user.userId;
     }

@@ -9,6 +9,14 @@ const licenseSchema = new mongoose.Schema({
     type: Number,
     default: 50
   },
+  validUntil: {
+    type: Date
+  },
+  expiryType: {
+    type: String,
+    enum: ['count', 'date', 'combined'],
+    default: 'count'
+  },
   features: {
     type: Map,
     of: Boolean,
@@ -39,8 +47,8 @@ const accountSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['customer'],
-    default: 'customer'
+    enum: ['lab_technician'],
+    default: 'lab_technician'
   },
   active: {
     type: Boolean,

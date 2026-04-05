@@ -2,7 +2,8 @@ import axios from 'axios';
 
 // Use different base URLs for development and production
 const isDevelopment = import.meta.env.DEV;
-const API_BASE_URL = isDevelopment ? 'http://localhost:5000/api' : '/api';
+// const API_BASE_URL = isDevelopment ? 'http://localhost:5000/api' : '/api';
+const API_BASE_URL = '/api';
 
 const API = axios.create({
   baseURL: API_BASE_URL,

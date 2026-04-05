@@ -108,12 +108,29 @@ const startApp = async () => {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
   const frontendDist = path.resolve(__dirname, '../../frontend/dist');
+  const frontendAssets = path.join(frontendDist, 'assets');
 
-  app.use(express.static(frontendDist));
+  app.use('/assets', express.static(frontendAssets, {
+    fallthrough: false,
+    immutable: true,
+    maxAge: '1y',
+  }));
+
+  app.use(express.static(frontendDist, {
+    index: false,
+    maxAge: '1h',
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('index.html')) {
+        res.setHeader('Cache-Control', 'no-store');
+      }
+    },
+  }));
+
   app.get('*', (req, res) => {
     if (req.path.startsWith('/api')) {
       return res.status(404).json({ error: 'API route not found' });
     }
+    res.setHeader('Cache-Control', 'no-store');
     res.sendFile(path.join(frontendDist, 'index.html'));
   });
 

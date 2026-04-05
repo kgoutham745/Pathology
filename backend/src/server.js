@@ -18,6 +18,12 @@ dotenv.config();
 
 const app = express();
 
+const isHostedEnvironment = Boolean(
+  process.env.RENDER ||
+  process.env.RENDER_EXTERNAL_URL ||
+  process.env.NODE_ENV === 'production'
+);
+
 // Middleware
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:3001,http://localhost:5000')
   .split(',')
@@ -40,7 +46,21 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 const connectDatabase = async () => {
   mongoose.set('strictQuery', false);
 
-  const localUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/pathology_db';
+  const configuredUri = process.env.MONGODB_URI?.trim();
+
+  if (configuredUri) {
+    await mongoose.connect(configuredUri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+    console.log('MongoDB connected using MONGODB_URI');
+    return;
+  }
+
+  if (isHostedEnvironment) {
+    throw new Error('MONGODB_URI is required in hosted environments. Configure a managed MongoDB database before starting the server.');
+  }
+
+  const localUri = 'mongodb://127.0.0.1:27017/pathology_db';
 
   try {
     await mongoose.connect(localUri, {
@@ -50,10 +70,6 @@ const connectDatabase = async () => {
     return;
   } catch (err) {
     console.warn(`MongoDB connection failed at ${localUri}: ${err.message}`);
-  }
-
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('Unable to connect to MongoDB in production mode. Please configure MONGODB_URI.');
   }
 
   const memoryServer = await MongoMemoryServer.create();

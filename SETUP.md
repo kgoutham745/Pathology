@@ -20,6 +20,8 @@ npm run prod
 
 **Access at**: `http://localhost:5000`
 
+For hosted deployments such as Render, you must set `MONGODB_URI` to an external MongoDB instance. The in-memory MongoDB fallback is only for local development.
+
 ### Development Setup
 
 ```bash

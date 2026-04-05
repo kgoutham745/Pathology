@@ -90,6 +90,8 @@ If you encounter issues:
 4. Start the production server: `npm run prod`
 5. For development: `npm run dev`
 
+For Render or any hosted deployment, set `MONGODB_URI` to a managed MongoDB connection string. The app only falls back to in-memory MongoDB for local development.
+
 ## 📄 License
 
 MIT License

@@ -31,7 +31,9 @@ const reportSchema = new mongoose.Schema({
     value: Number,
     unit: String,
     normalRange: String,
-    isAbnormal: Boolean
+    isAbnormal: Boolean,
+    abnormalType: String,
+    possibleCause: String
   }],
   dates: {
     sampleCollectionDate: Date,

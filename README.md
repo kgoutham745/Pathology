@@ -1,97 +1,96 @@
 # Pathology Report Generator
 
-A professional, full-stack web application for medical laboratories to generate clean, well-formatted PDF reports for various medical tests.
+A professional medical laboratory report generation system built with React and Node.js.
 
-## 🎯 Features
+## 🚀 Quick Start
 
-### Core Features
-- ✅ Multiple test type support (CBC, LFT, RFT, Thyroid, Lipid Profile, Blood Sugar, Urine, etc.)
-- ✅ Dynamic form generation based on selected test
+### Prerequisites
+- Node.js v16+
+- MongoDB (optional - falls back to in-memory database)
+
+### Single Server Production Setup
+
+```bash
+# Install all dependencies
+npm run install-all
+
+# Build and start production server
+npm run prod
+```
+
+**Open**: `http://localhost:5000`
+
+### Development Setup
+
+```bash
+# Install all dependencies
+npm run install-all
+
+# Start development servers (frontend + backend)
+npm run dev
+```
+
+**Open**: `http://localhost:3000` (frontend) and `http://localhost:5000` (backend API)
+
+## 📋 Features
+
 - ✅ Patient information management
+- ✅ 12+ test types (CBC, LFT, RFT, Thyroid, etc.)
 - ✅ Professional PDF report generation
 - ✅ Abnormal value highlighting
 - ✅ Report history and search
-- ✅ Dark mode support
-
-### Advanced Features
 - ✅ Lab settings configuration
-- ✅ Logo upload and branding
-- ✅ Theme customization
-- ✅ Report templates
-- ✅ Responsive design (Mobile + Desktop)
-- ✅ Modern UI with animations
+- ✅ Dark mode support
+- ✅ Responsive design
 
-## 🏗️ Project Structure
+## 🧪 Test Types
+
+- Complete Blood Count (CBC)
+- Liver Function Test (LFT)
+- Renal Function Test (RFT)
+- Thyroid Profile
+- Lipid Profile
+- Blood Sugar
+- Electrolyte Panel
+- HbA1c
+- Vitamin D
+- Coagulation Profile
+- Urine Analysis
+- Culture & Sensitivity
+
+## 📁 Project Structure
 
 ```
 pathology/
-├── backend/                 # Node.js + Express backend
-│   ├── src/
-│   │   ├── models/         # MongoDB schemas
-│   │   ├── controllers/    # Request handlers
-│   │   ├── routes/         # API routes
-│   │   ├── utils/          # Helper functions
-│   │   └── server.js       # Express app
-│   ├── package.json
-│   └── .env.example
-│
-└── frontend/               # React + Vite frontend
-    ├── src/
-    │   ├── components/     # Reusable components
-    │   ├── pages/          # Page components
-    │   ├── utils/          # Helper functions
-    │   ├── context/        # State management
-    │   ├── data/           # Static data
-    │   ├── App.jsx
-    │   └── main.jsx
-    ├── public/
-    ├── package.json
-    ├── vite.config.js
-## 🧪 Testing
-
-### Automated Tests
-```bash
-# Test production build
-npm run test
-
-# Test development servers
-npm run test:dev
+├── backend/          # Express.js API server
+├── frontend/         # React application
+├── package.json      # Root scripts
+└── README.md         # This file
 ```
 
-### Manual Testing Checklist
-1. **Server Startup**
-   - ✅ Production: `npm start` (serves on port 5000)
-   - ✅ Development: `npm run dev` (frontend:3000, backend:5000)
+## 🔧 Available Scripts
 
-2. **Core Functionality**
-   - ✅ Open app in browser (http://localhost:5000 or http://localhost:3000)
-   - ✅ Navigate to Report Generator page
-   - ✅ Fill patient information form
-   - ✅ Select test type (CBC, LFT, etc.)
-   - ✅ Enter test result values
-   - ✅ Add custom parameters (click "Add Custom Parameter")
-   - ✅ Remove custom parameters (click "Remove" button)
-   - ✅ Generate report (click "Generate Report")
-   - ✅ Download PDF (click "Download PDF")
+- `npm run install-all` - Install dependencies for both frontend and backend
+- `npm run build` - Build React frontend to static files
+- `npm run prod` - Build and start production server
+- `npm run dev` - Start development servers
+- `npm run test:dev` - Test production build with single server
 
-3. **Error Handling**
-   - ✅ Form validation (required fields)
-   - ✅ API error handling
-   - ✅ Network connectivity issues
-   - ✅ Invalid data formats
+## 📖 Setup Guide
 
-4. **UI/UX**
-   - ✅ Responsive design (mobile/desktop)
-   - ✅ Dark mode toggle
-   - ✅ Loading states
-   - ✅ Success/error messages
-   - ✅ Form navigation (step-by-step)
+For detailed installation and setup instructions, see [SETUP.md](SETUP.md).
 
-### Common Issues & Fixes
-- **JavaScript Errors**: Make sure to rebuild after code changes (`npm run build`)
-- **API Connection**: Check CORS settings and server logs
-- **PDF Generation**: Ensure all required fields are filled
-- **Custom Parameters**: Test add/remove functionality thoroughly
+## 🐛 Issues
+
+If you encounter issues:
+1. Make sure Node.js v16+ is installed
+2. Run `npm run install-all` to install dependencies
+3. For production: `npm run prod`
+4. For development: `npm run dev`
+
+## 📄 License
+
+MIT License
     └── index.html
 ```
 
@@ -99,10 +98,33 @@ npm run test:dev
 
 ### Prerequisites
 - Node.js (v16 or higher)
-- MongoDB (local or cloud)
+- MongoDB (local or cloud) - optional for development (falls back to in-memory)
 - npm or yarn
 
-### Backend Setup
+### Option 1: Single Server Production Deployment (Recommended)
+
+1. Install all dependencies:
+   ```bash
+   npm run install-all
+   ```
+
+2. Build the frontend:
+   ```bash
+   npm run build
+   ```
+
+3. Start the production server:
+   ```bash
+   npm run prod
+   ```
+
+4. Open your browser and navigate to `http://localhost:5000`
+
+**That's it!** The single server serves both the React app and API routes.
+
+### Option 2: Development with Separate Servers
+
+#### Backend Setup
 
 1. Navigate to backend directory:
    ```bash
@@ -133,7 +155,7 @@ npm run test:dev
    npm run dev
    ```
 
-### Frontend Setup
+#### Frontend Setup
 
 1. Open a new terminal and navigate to frontend directory:
    ```bash

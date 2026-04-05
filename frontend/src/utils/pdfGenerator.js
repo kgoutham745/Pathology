@@ -40,111 +40,109 @@ export const generatePDFFromHTML = async (element, filename) => {
 export const generatePDFReport = async (report, labSettings) => {
   const pdf = new jsPDF('p', 'mm', 'a4');
   let yPosition = 20;
-  const reportFormat = labSettings?.reportFormat || 'standard';
 
-  // Colors
-  const primaryColor = [41, 128, 185]; // Blue
-  const secondaryColor = [52, 73, 94]; // Dark Gray
-  const accentColor = [231, 76, 60]; // Red for abnormal
-  const normalColor = [46, 204, 113]; // Green for normal
-  const backgroundColor = [245, 245, 245]; // Light gray background
+  const primaryColor = [11, 84, 148];
+  const secondaryColor = [34, 45, 73];
+  const accentColor = [231, 76, 60];
+  const normalColor = [46, 204, 113];
+  const backgroundColor = [245, 245, 245];
 
-  // Helper function to add colored rectangle
   const addColoredRect = (x, y, w, h, color) => {
     pdf.setFillColor(...color);
     pdf.rect(x, y, w, h, 'F');
   };
 
-  // Header with background
-  addColoredRect(0, 0, 210, 40, primaryColor);
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(20);
-  pdf.setFont(undefined, 'bold');
-  pdf.text(labSettings?.labName || 'ADVANCED DIAGNOSTIC CENTER', 105, yPosition + 5, { align: 'center' });
+  // Header block
+  addColoredRect(0, 0, 210, 48, primaryColor);
+  pdf.setFillColor(255, 255, 255);
+  pdf.rect(15, 15, 180, 30, 'F');
 
-  pdf.setFontSize(12);
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(22);
+  pdf.setFont(undefined, 'bold');
+  pdf.text(labSettings?.labName || 'ADVANCED DIAGNOSTIC CENTER', 105, 14, { align: 'center' });
+
+  pdf.setFontSize(10);
   pdf.setFont(undefined, 'normal');
-  pdf.text('Comprehensive Pathology & Diagnostic Services', 105, yPosition + 15, { align: 'center' });
+  pdf.text(labSettings?.address || '123 Medical Plaza, Healthcare City, HC 12345', 105, 20, { align: 'center' });
+  pdf.text(`Phone: ${labSettings?.phone || '+1-234-567-8900'} | Email: ${labSettings?.email || 'info@advdiagnostic.com'}`, 105, 25, { align: 'center' });
+  pdf.text(`Website: ${labSettings?.website || 'www.labexample.com'}`, 105, 30, { align: 'center' });
 
-  // Lab contact info
-  pdf.setFontSize(8);
-  pdf.text(`Phone: ${labSettings?.phone || '+1-234-567-8900'} | Email: ${labSettings?.email || 'info@advdiagnostic.com'}`, 105, yPosition + 25, { align: 'center' });
-  pdf.text(`${labSettings?.address || '123 Medical Plaza, Healthcare City, HC 12345'}`, 105, yPosition + 30, { align: 'center' });
+  pdf.setDrawColor(...primaryColor);
+  pdf.setLineWidth(0.8);
+  pdf.line(15, 47, 195, 47);
 
-  yPosition += 45;
+  yPosition = 55;
 
-  // Report title with styling
-  addColoredRect(0, yPosition - 5, 210, 15, secondaryColor);
+  // Report title bar
+  addColoredRect(15, yPosition - 4, 180, 10, secondaryColor);
   pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(16);
+  pdf.setFontSize(14);
   pdf.setFont(undefined, 'bold');
-  pdf.text('PATHOLOGY REPORT', 105, yPosition + 5, { align: 'center' });
-  yPosition += 20;
+  pdf.text('PATHOLOGY REPORT', 105, yPosition + 3, { align: 'center' });
+
+  yPosition += 15;
 
   // Report metadata
   pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(10);
+  pdf.setFontSize(9);
   pdf.setFont(undefined, 'bold');
-
-  // Left column
   pdf.text('Report ID:', 20, yPosition);
   pdf.text('Patient ID:', 20, yPosition + 6);
   pdf.text('Report Date:', 20, yPosition + 12);
   pdf.text('Report Time:', 20, yPosition + 18);
 
   pdf.setFont(undefined, 'normal');
-  pdf.text(`${report.reportId}`, 50, yPosition);
-  pdf.text(`${report.patient.patientId}`, 50, yPosition + 6);
-  pdf.text(`${new Date(report.dates.reportDate).toLocaleDateString()}`, 50, yPosition + 12);
-  pdf.text(`${new Date().toLocaleTimeString()}`, 50, yPosition + 18);
+  pdf.text(`${report.reportId}`, 45, yPosition);
+  pdf.text(`${report.patient.patientId || 'N/A'}`, 45, yPosition + 6);
+  pdf.text(`${new Date(report.dates.reportDate).toLocaleDateString()}`, 45, yPosition + 12);
+  pdf.text(`${new Date().toLocaleTimeString()}`, 45, yPosition + 18);
 
-  // Right column
   pdf.setFont(undefined, 'bold');
   pdf.text('Test Type:', 120, yPosition);
   pdf.text('Sample Date:', 120, yPosition + 6);
   pdf.text('Referring Doctor:', 120, yPosition + 12);
 
   pdf.setFont(undefined, 'normal');
-  pdf.text(`${report.test.testType} - ${report.test.testName}`, 150, yPosition);
+  pdf.text(`${report.test.testType || ''} - ${report.test.testName || ''}`, 150, yPosition);
   pdf.text(`${new Date(report.dates.sampleCollectionDate).toLocaleDateString()}`, 150, yPosition + 6);
-  pdf.text(`${report.patient.doctorName}`, 150, yPosition + 12);
+  pdf.text(`${report.patient.doctorName || 'N/A'}`, 150, yPosition + 12);
 
-  yPosition += 30;
+  yPosition += 24;
 
   // Patient Information Box
-  addColoredRect(15, yPosition - 3, 180, 25, backgroundColor);
+  addColoredRect(15, yPosition - 4, 180, 28, backgroundColor);
   pdf.setFont(undefined, 'bold');
-  pdf.setFontSize(11);
-  pdf.setTextColor(...primaryColor);
+  pdf.setFontSize(10);
+  pdf.setTextColor(...secondaryColor);
   pdf.text('PATIENT INFORMATION', 20, yPosition + 2);
 
+  pdf.setFontSize(8);
   pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(9);
   pdf.setFont(undefined, 'normal');
-  pdf.text(`Name: ${report.patient.name}`, 25, yPosition + 8);
-  pdf.text(`Age: ${report.patient.age} years`, 85, yPosition + 8);
-  pdf.text(`Gender: ${report.patient.gender}`, 135, yPosition + 8);
-  pdf.text(`Contact: ${report.patient.contactNo || 'N/A'}`, 25, yPosition + 14);
-  pdf.text(`Email: ${report.patient.email || 'N/A'}`, 85, yPosition + 14);
+  pdf.text(`Name: ${report.patient.name}`, 25, yPosition + 9);
+  pdf.text(`Age: ${report.patient.age} years`, 80, yPosition + 9);
+  pdf.text(`Gender: ${report.patient.gender}`, 125, yPosition + 9);
+  pdf.text(`Contact: ${report.patient.contactNo || 'N/A'}`, 25, yPosition + 15);
+  pdf.text(`Email: ${report.patient.email || 'N/A'}`, 90, yPosition + 15);
 
   yPosition += 35;
 
-  // Test Results Header
-  addColoredRect(15, yPosition - 3, 180, 12, primaryColor);
+  // Results header
+  addColoredRect(15, yPosition - 4, 180, 10, primaryColor);
   pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(12);
+  pdf.setFontSize(11);
   pdf.setFont(undefined, 'bold');
   pdf.text('TEST RESULTS', 20, yPosition + 3);
 
-  yPosition += 15;
-  // Results table
-  const tableHeaders = ['Parameter', 'Result', 'Unit', 'Reference Range', 'Status'];
-  const colWidths = [60, 25, 20, 45, 25];
+  yPosition += 12;
+
+  const tableHeaders = ['Parameter', 'Result', 'Unit', 'Reference', 'Status'];
+  const colWidths = [60, 25, 20, 55, 30];
   let xPos = 20;
 
-  // Header row
   pdf.setFillColor(...secondaryColor);
-  pdf.rect(15, yPosition - 3, 180, 8, 'F');
+  pdf.rect(15, yPosition - 4, 180, 8, 'F');
   pdf.setTextColor(255, 255, 255);
   pdf.setFontSize(8);
   pdf.setFont(undefined, 'bold');
@@ -155,10 +153,8 @@ export const generatePDFReport = async (report, labSettings) => {
   });
 
   yPosition += 10;
-
-  // Results rows
-  pdf.setFontSize(8);
   pdf.setFont(undefined, 'normal');
+  pdf.setFontSize(8);
 
   report.results.forEach((result, index) => {
     if (yPosition > 250) {
@@ -166,10 +162,9 @@ export const generatePDFReport = async (report, labSettings) => {
       yPosition = 20;
     }
 
-    // Alternate row colors
     if (index % 2 === 0) {
       pdf.setFillColor(250, 250, 250);
-      pdf.rect(15, yPosition - 3, 180, 8, 'F');
+      pdf.rect(15, yPosition - 4, 180, 8, 'F');
     }
 
     xPos = 20;
@@ -178,13 +173,17 @@ export const generatePDFReport = async (report, labSettings) => {
       result.value || 'Pending',
       result.unit,
       result.normalRange,
-      result.isAbnormal ? 'Abnormal' : 'Normal'
+      result.isAbnormal ? (result.abnormalType === 'low' ? 'LOW' : 'HIGH') : 'Normal'
     ];
 
     rowData.forEach((value, colIndex) => {
       let textColor = [0, 0, 0];
       if (colIndex === 4) {
-        textColor = result.isAbnormal ? accentColor : normalColor;
+        if (result.isAbnormal) {
+          textColor = result.abnormalType === 'low' ? [199, 133, 0] : accentColor;
+        } else {
+          textColor = normalColor;
+        }
       }
       pdf.setTextColor(...textColor);
       pdf.text(String(value), xPos + colWidths[colIndex] / 2, yPosition + 2, { align: 'center' });
@@ -194,16 +193,52 @@ export const generatePDFReport = async (report, labSettings) => {
     yPosition += 8;
   });
 
-  yPosition += 10;
+  const abnormalResults = report.results.filter((result) => result.isAbnormal);
+  if (abnormalResults.length > 0) {
+    yPosition += 6;
+    if (yPosition > 250) {
+      pdf.addPage();
+      yPosition = 20;
+    }
 
-  // Notes section
+    pdf.setTextColor(...secondaryColor);
+    pdf.setFontSize(11);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Possible Causes of Abnormal Parameters', 20, yPosition);
+    yPosition += 7;
+
+    pdf.setFontSize(8);
+    pdf.setFont(undefined, 'normal');
+    pdf.setTextColor(0, 0, 0);
+
+    abnormalResults.forEach((result) => {
+      if (yPosition > 250) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+
+      const causeText = result.possibleCause ||
+        (result.abnormalType === 'high'
+          ? `Elevated ${result.parameterName} may indicate inflammation, infection, dehydration, or metabolic imbalance.`
+          : `Low ${result.parameterName} may indicate anemia, deficiency, malabsorption, or organ dysfunction.`);
+      const wrapped = pdf.splitTextToSize(`• ${causeText}`, 170);
+      pdf.text(wrapped, 20, yPosition);
+      yPosition += wrapped.length * 4 + 2;
+    });
+  }
+
   if (report.notes) {
+    yPosition += 8;
+    if (yPosition > 250) {
+      pdf.addPage();
+      yPosition = 20;
+    }
+
     pdf.setTextColor(...primaryColor);
     pdf.setFont(undefined, 'bold');
     pdf.setFontSize(10);
     pdf.text('CLINICAL NOTES:', 20, yPosition);
     yPosition += 6;
-    pdf.setTextColor(0, 0, 0);
     pdf.setFont(undefined, 'normal');
     pdf.setFontSize(8);
     const noteLines = pdf.splitTextToSize(report.notes, 170);
@@ -211,7 +246,6 @@ export const generatePDFReport = async (report, labSettings) => {
     yPosition += noteLines.length * 4 + 5;
   }
 
-  // QR Code for report verification
   try {
     const qrData = `Report ID: ${report.reportId}\nPatient: ${report.patient.name}\nDate: ${new Date(report.dates.reportDate).toLocaleDateString()}\nVerified by: ${labSettings?.labName || 'Advanced Diagnostic Center'}`;
     const qrCodeDataURL = await QRCode.toDataURL(qrData, { width: 80, margin: 1 });
@@ -223,7 +257,6 @@ export const generatePDFReport = async (report, labSettings) => {
     console.error('Error generating QR code:', error);
   }
 
-  // Footer
   yPosition = 270;
   pdf.setFontSize(8);
   pdf.setFont(undefined, 'italic');

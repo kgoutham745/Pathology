@@ -4,22 +4,60 @@ import TestTemplate from '../models/TestTemplate.js';
 import Account from '../models/Account.js';
 import { generateReportId } from '../utils/helpers.js';
 
-const checkIfAbnormal = (result) => {
-  if (!result.value) return false;
-  
-  const ranges = result.normalRange?.match(/[\d.]+/g);
-  if (!ranges || ranges.length === 0) return false;
+const getAbnormalStatus = (value, normalRange) => {
+  const status = { isAbnormal: false, abnormalType: 'normal' };
+
+  if (value === '' || value === null || value === undefined || Number.isNaN(value) || !normalRange) {
+    return status;
+  }
+
+  const ranges = normalRange?.match(/[\d.]+/g);
+  if (!ranges || ranges.length === 0) return status;
 
   const min = parseFloat(ranges[0]);
   const max = ranges.length > 1 ? parseFloat(ranges[1]) : parseFloat(ranges[0]);
 
-  if (result.normalRange.includes('<')) {
-    return result.value >= min;
-  } else if (result.normalRange.includes('>')) {
-    return result.value <= min;
+  if (normalRange.includes('<')) {
+    if (value >= min) {
+      status.isAbnormal = true;
+      status.abnormalType = 'high';
+    }
+  } else if (normalRange.includes('>')) {
+    if (value <= min) {
+      status.isAbnormal = true;
+      status.abnormalType = 'low';
+    }
   } else {
-    return result.value < min || result.value > max;
+    if (value < min) {
+      status.isAbnormal = true;
+      status.abnormalType = 'low';
+    } else if (value > max) {
+      status.isAbnormal = true;
+      status.abnormalType = 'high';
+    }
   }
+
+  return status;
+};
+
+const getPossibleCause = (parameterName, abnormalType) => {
+  if (abnormalType === 'high') {
+    return `An elevated ${parameterName} may indicate inflammation, infection, dehydration, or metabolic imbalance.`;
+  }
+  if (abnormalType === 'low') {
+    return `A reduced ${parameterName} may indicate anemia, deficiency, malabsorption, or organ dysfunction.`;
+  }
+  return '';
+};
+
+const enrichResult = (result) => {
+  const status = getAbnormalStatus(result.value, result.normalRange);
+  return {
+    ...result,
+    isAbnormal: status.isAbnormal,
+    abnormalType: status.abnormalType,
+    possibleCause: status.isAbnormal ? getPossibleCause(result.parameterName, status.abnormalType) : ''
+  };
 };
 
 export const createReport = async (req, res) => {
@@ -44,10 +82,7 @@ export const createReport = async (req, res) => {
       reportId,
       patient,
       test,
-      results: results.map(r => ({
-        ...r,
-        isAbnormal: checkIfAbnormal(r)
-      })),
+      results: results.map(enrichResult),
       dates: {
         sampleCollectionDate: new Date(patient.sampleCollectionDate || new Date()),
         reportDate: new Date()
@@ -120,10 +155,7 @@ export const updateReport = async (req, res) => {
       {
         patient,
         test,
-        results: results.map(r => ({
-          ...r,
-          isAbnormal: checkIfAbnormal(r)
-        })),
+        results: results.map(enrichResult),
         notes,
         updatedAt: new Date()
       },

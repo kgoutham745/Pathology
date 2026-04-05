@@ -2,34 +2,29 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 
-export const Badge = ({ status, value, isAbnormal = false, type = 'success' }) => {
+export const Badge = ({ status, value, isAbnormal = false, abnormalType = 'normal', type = 'success' }) => {
   const baseClasses = 'px-3 py-1 rounded-full text-sm font-semibold inline-flex items-center gap-1';
   
   const statusClasses = {
-    abnormal: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200',
+    high: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200',
+    low: 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200',
     normal: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
-    warning: 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200',
     info: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
   };
 
+  const label = isAbnormal ? (abnormalType === 'low' ? 'LOW' : 'HIGH') : 'NORMAL';
+  const icon = isAbnormal ? <AlertCircle size={16} /> : <CheckCircle size={16} />;
+  const className = isAbnormal ? statusClasses[abnormalType] : statusClasses.normal;
+
   return (
     <motion.span
-      className={`${baseClasses} ${statusClasses[isAbnormal ? 'abnormal' : type]}`}
+      className={`${baseClasses} ${className}`}
       initial={{ scale: 0.95, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.2 }}
     >
-      {isAbnormal ? (
-        <>
-          <AlertCircle size={16} />
-          HIGH
-        </>
-      ) : (
-        <>
-          <CheckCircle size={16} />
-          NORMAL
-        </>
-      )}
+      {icon}
+      {label}
     </motion.span>
   );
 };

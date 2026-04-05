@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { reportAPI, labAPI, testAPI } from '../utils/api';
 import { Card, Button, Input, Select, Textarea, Loading, Alert } from '../components/UIComponents';
 import { generatePDFReport, downloadPDF } from '../utils/pdfGenerator';
-import { validatePatientInfo, validateTestResults, checkAbnormalValue } from '../utils/validators';
+import { validatePatientInfo, validateTestResults, checkAbnormalValue, getAbnormalStatus, getAbnormalLabel, getAbnormalCause } from '../utils/validators';
 import { testTemplates } from '../data/testTemplates';
 
 const ReportGenerator = () => {
@@ -32,6 +32,7 @@ const ReportGenerator = () => {
   const [errors, setErrors] = useState({});
   const [availableTests, setAvailableTests] = useState([]);
   const [templatesLoading, setTemplatesLoading] = useState(true);
+  const [selectingTemplate, setSelectingTemplate] = useState(false);
   const [customParameters, setCustomParameters] = useState([]);
 
   useEffect(() => {
@@ -51,10 +52,20 @@ const ReportGenerator = () => {
         setAvailableTests(response.data);
         if (response.data.length > 0) {
           setSelectedTest(response.data[0].testId);
+        } else {
+          // No tests in database, use built-in defaults
+          console.warn('No test templates found in database, using built-in defaults.');
+          setAvailableTests(Object.values(testTemplates));
+          if (Object.values(testTemplates).length > 0) {
+            setSelectedTest(Object.values(testTemplates)[0].testId);
+          }
         }
       } catch (error) {
         console.warn('Failed to load remote templates, using built-in defaults.', error);
         setAvailableTests(Object.values(testTemplates));
+        if (Object.values(testTemplates).length > 0) {
+          setSelectedTest(Object.values(testTemplates)[0].testId);
+        }
       } finally {
         setTemplatesLoading(false);
       }
@@ -75,7 +86,9 @@ const ReportGenerator = () => {
           value: '',
           unit: param.unit,
           normalRange: param.normalRange,
-          isAbnormal: false
+          isAbnormal: false,
+          abnormalType: 'normal',
+          possibleCause: ''
         }))
       );
     }
@@ -88,8 +101,12 @@ const ReportGenerator = () => {
 
   const handleResultChange = (index, value) => {
     const newResults = [...results];
-    newResults[index].value = value ? parseFloat(value) : '';
-    newResults[index].isAbnormal = checkAbnormalValue(newResults[index].value, newResults[index].normalRange);
+    const parsedValue = value ? parseFloat(value) : '';
+    const status = getAbnormalStatus(parsedValue, newResults[index].normalRange);
+    newResults[index].value = parsedValue;
+    newResults[index].isAbnormal = status.isAbnormal;
+    newResults[index].abnormalType = status.abnormalType;
+    newResults[index].possibleCause = status.isAbnormal ? getAbnormalCause(newResults[index].parameterName, status.abnormalType) : '';
     setResults(newResults);
   };
 
@@ -110,8 +127,12 @@ const ReportGenerator = () => {
   const updateCustomParameter = (index, field, value) => {
     const newCustom = [...customParameters];
     newCustom[index][field] = value;
-    if (field === 'value') {
-      newCustom[index].isAbnormal = checkAbnormalValue(value ? parseFloat(value) : '', newCustom[index].normalRange);
+    if (field === 'value' || field === 'normalRange') {
+      const parsedValue = newCustom[index].value ? parseFloat(newCustom[index].value) : '';
+      const status = getAbnormalStatus(parsedValue, newCustom[index].normalRange);
+      newCustom[index].isAbnormal = status.isAbnormal;
+      newCustom[index].abnormalType = status.abnormalType;
+      newCustom[index].possibleCause = status.isAbnormal ? getAbnormalCause(newCustom[index].parameterName, status.abnormalType) : '';
     }
     setCustomParameters(newCustom);
   };
@@ -149,9 +170,24 @@ const ReportGenerator = () => {
       }
 
       setLoading(true);
+      setSelectingTemplate(true);
       setError(null);
 
       const test = availableTests.find((item) => item.testId === selectedTest) || testTemplates[selectedTest];
+      const formattedCustomParameters = customParameters
+        .filter((p) => p.parameterName && p.value)
+        .map((param) => {
+          const parsedValue = param.value ? parseFloat(param.value) : '';
+          const status = getAbnormalStatus(parsedValue, param.normalRange);
+          return {
+            ...param,
+            value: parsedValue,
+            isAbnormal: status.isAbnormal,
+            abnormalType: status.abnormalType,
+            possibleCause: status.isAbnormal ? getAbnormalCause(param.parameterName, status.abnormalType) : ''
+          };
+        });
+
       const reportData = {
         patient,
         test: {
@@ -159,7 +195,7 @@ const ReportGenerator = () => {
           testName: test?.testName || '',
           testType: test?.testType || ''
         },
-        results: [...results, ...customParameters.filter(p => p.parameterName && p.value)],
+        results: [...results, ...formattedCustomParameters],
         labDetails: labSettings || {},
         notes
       };
@@ -167,11 +203,12 @@ const ReportGenerator = () => {
       const response = await reportAPI.create(reportData);
       setGeneratedReport(response.data);
       setSuccess(true);
-      setStep(4); // Go to success step
+      setStep(4);
     } catch (err) {
       setError('Failed to create report: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoading(false);
+      setSelectingTemplate(false);
     }
   };
 
@@ -292,33 +329,45 @@ const ReportGenerator = () => {
           <Card>
             <h2 className='text-2xl font-bold mb-6'>Select Test Type</h2>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              {availableTests.map((test) => (
-                <motion.div
-                  key={test.testId}
-                  onClick={() => setSelectedTest(test.testId)}
-                  className={`p-4 rounded-lg cursor-pointer transition-all ${
-                    selectedTest === test.testId
-                      ? 'bg-blue-100 dark:bg-blue-900 border-2 border-blue-600'
-                      : 'bg-gray-100 dark:bg-gray-700 border-2 border-transparent hover:border-blue-400'
-                  }`}
-                  whileHover={{ scale: 1.02 }}
-                >
-                  <h3 className='font-bold text-lg'>{test.testName}</h3>
-                  <p className='text-sm font-semibold text-blue-600 dark:text-blue-400 uppercase'>{test.testType}</p>
-                  <p className='text-xs mt-2 text-gray-500'>{test.parameters?.length || 0} parameters</p>
-                  <p className='text-xs text-gray-500'>Sample: {test.sampleType}</p>
-                </motion.div>
-              ))}
+              {templatesLoading ? (
+                <div className='col-span-full flex justify-center py-8'>
+                  <Loading />
+                </div>
+              ) : availableTests.length === 0 ? (
+                <div className='col-span-full text-center py-8 text-gray-500'>
+                  <p>No test templates available. Please check your connection or contact administrator.</p>
+                </div>
+              ) : (
+                availableTests.map((test) => (
+                  <motion.div
+                    key={test.testId}
+                    onClick={() => setSelectedTest(test.testId)}
+                    className={`p-4 rounded-lg cursor-pointer transition-all ${
+                      selectedTest === test.testId
+                        ? 'bg-blue-100 dark:bg-blue-900 border-2 border-blue-600'
+                        : 'bg-gray-100 dark:bg-gray-700 border-2 border-transparent hover:border-blue-400'
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <h3 className='font-bold text-lg'>{test.testName}</h3>
+                    <p className='text-sm font-semibold text-blue-600 dark:text-blue-400 uppercase'>{test.testType}</p>
+                    <p className='text-xs mt-2 text-gray-500'>{test.parameters?.length || 0} parameters</p>
+                    <p className='text-xs text-gray-500'>Sample: {test.sampleType}</p>
+                  </motion.div>
+                ))
+              )}
             </div>
 
             {/* Test Details */}
-            <div className='mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg'>
-              <h3 className='font-bold mb-2'>Selected Test Details</h3>
-              <p><span className='font-semibold'>Test:</span> {availableTests.find((item) => item.testId === selectedTest)?.testName}</p>
-              <p><span className='font-semibold'>Type:</span> {availableTests.find((item) => item.testId === selectedTest)?.testType}</p>
-              <p><span className='font-semibold'>Sample:</span> {availableTests.find((item) => item.testId === selectedTest)?.sampleType}</p>
-              <p><span className='font-semibold'>Turnaround:</span> {availableTests.find((item) => item.testId === selectedTest)?.turnaroundTime}</p>
-            </div>
+            {availableTests.length > 0 && selectedTest && (
+              <div className='mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg'>
+                <h3 className='font-bold mb-2'>Selected Test Details</h3>
+                <p><span className='font-semibold'>Test:</span> {availableTests.find((item) => item.testId === selectedTest)?.testName}</p>
+                <p><span className='font-semibold'>Type:</span> {availableTests.find((item) => item.testId === selectedTest)?.testType}</p>
+                <p><span className='font-semibold'>Sample:</span> {availableTests.find((item) => item.testId === selectedTest)?.sampleType}</p>
+                <p><span className='font-semibold'>Turnaround:</span> {availableTests.find((item) => item.testId === selectedTest)?.turnaroundTime}</p>
+              </div>
+            )}
           </Card>
         </motion.div>
       )}
@@ -328,6 +377,9 @@ const ReportGenerator = () => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className='space-y-6'>
           <Card>
             <h2 className='text-2xl font-bold mb-6'>Enter Test Results</h2>
+            {selectingTemplate && (
+              <p className='text-sm text-gray-600 dark:text-gray-300 mb-4'>Selecting a template and preparing your report...</p>
+            )}
             <div className='space-y-4'>
               {results.map((result, index) => (
                 <motion.div
@@ -356,26 +408,18 @@ const ReportGenerator = () => {
                     {result.value && (
                       <span className={`px-3 py-2 rounded-full text-xs font-bold ${
                         result.isAbnormal
-                          ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                          ? result.abnormalType === 'low'
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                           : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                       }`}>
-                        {result.isAbnormal ? 'HIGH' : 'NORMAL'}
+                        {result.isAbnormal ? (result.abnormalType === 'low' ? 'LOW' : 'HIGH') : 'NORMAL'}
                       </span>
                     )}
                   </div>
                 </motion.div>
               ))}
             </div>
-          </Card>
-
-          <Card>
-            <h2 className='text-lg font-bold mb-4'>Additional Notes</h2>
-            <Textarea
-              placeholder='Add any clinical notes or observations'
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={4}
-            />
           </Card>
 
           <Card>
@@ -414,10 +458,12 @@ const ReportGenerator = () => {
                     {param.value && (
                       <span className={`px-3 py-2 rounded-full text-xs font-bold ${
                         param.isAbnormal
-                          ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                          ? param.abnormalType === 'low'
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                           : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                       }`}>
-                        {param.isAbnormal ? 'HIGH' : 'NORMAL'}
+                        {param.isAbnormal ? (param.abnormalType === 'low' ? 'LOW' : 'HIGH') : 'NORMAL'}
                       </span>
                     )}
                   </div>
@@ -438,6 +484,16 @@ const ReportGenerator = () => {
                 Add Custom Parameter
               </Button>
             </div>
+          </Card>
+
+          <Card>
+            <h2 className='text-lg font-bold mb-4'>Additional Notes</h2>
+            <Textarea
+              placeholder='Add any clinical notes or observations'
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={4}
+            />
           </Card>
         </motion.div>
       )}
@@ -525,7 +581,7 @@ const ReportGenerator = () => {
             size='lg'
             disabled={loading}
           >
-            {loading ? 'Generating...' : 'Generate Report'}
+            {loading ? (selectingTemplate ? 'Selecting template...' : 'Generating...') : 'Generate Report'}
           </Button>
         )}
       </div>

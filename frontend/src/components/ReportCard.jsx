@@ -22,9 +22,14 @@ const ReportCard = ({ report, onDelete, onEdit, onView }) => {
     fetchLabSettings();
   }, []);
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     try {
-      const pdf = generatePDFReport(report, labSettings);
+      if (!labSettings) {
+        console.error('Cannot generate PDF: lab settings not loaded');
+        return;
+      }
+
+      const pdf = await generatePDFReport(report, labSettings);
       downloadPDF(pdf, `Report_${report.reportId}`);
     } catch (error) {
       console.error('Error downloading PDF:', error);

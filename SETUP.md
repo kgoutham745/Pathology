@@ -1,53 +1,68 @@
-# Pathology Report Generator - Installation & Setup Guide
+# Pathology Report Generator - Setup Guide
 
 ## 📋 Prerequisites
 
-Before you begin, make sure you have the following installed:
-- **Node.js** (v16 or higher) - [Download](https://nodejs.org/)
-- **MongoDB** - [Download](https://www.mongodb.com/try/download/community) or use [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-- **Git** (optional)
-- **Text Editor** - VS Code, Sublime, etc.
+- **Node.js** v16 or higher
+- **MongoDB** (optional - uses in-memory database if not available)
 
-## 🚀 Installation Steps
+## 🚀 Quick Setup
 
-### Step 1: Clone/Download Project
+### Single Server Production (Recommended)
 
-If you have the project files, navigate to the project root directory.
+```bash
+# Install all dependencies
+npm run install-all
 
-### Step 2: Backend Setup
+# Build and start production server
+npm run prod
+```
 
-#### 2.1 Navigate to Backend Directory
+**Access at**: `http://localhost:5000`
+
+### Development Setup
+
+```bash
+# Install all dependencies
+npm run install-all
+
+# Start development servers
+npm run dev
+```
+
+**Access at**: `http://localhost:3000`
+
+## 🔧 Manual Setup (Optional)
+
+If you prefer manual setup:
+
+### Backend Setup
 ```bash
 cd backend
-```
-
-#### 2.2 Install Dependencies
-```bash
 npm install
-```
-
-This will install:
-- Express.js (web framework)
-- Mongoose (MongoDB ODM)
-- CORS (Cross-Origin Resource Sharing)
-- JWT (Authentication)
-- And other dependencies
-
-#### 2.3 Create Environment File
-```bash
 cp .env.example .env
+# Edit .env file if needed
+npm run dev
 ```
 
-#### 2.4 Configure Environment Variables
-Edit `.env` file and update:
-
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/pathology_db
-NODE_ENV=development
-JWT_SECRET=pathology_secret_key_2024
-CORS_ORIGIN=http://localhost:3000
+### Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
 ```
+
+## 🧪 Testing
+
+```bash
+# Test production build
+npm run test:dev
+```
+
+## 🐛 Troubleshooting
+
+- **Port already in use**: Change PORT in backend/.env
+- **MongoDB connection failed**: App uses in-memory database automatically
+- **Build errors**: Run `npm run install-all` first
 
 **Options for MongoDB:**
 - **Local MongoDB**: `mongodb://localhost:27017/pathology_db`

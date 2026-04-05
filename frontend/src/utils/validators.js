@@ -21,7 +21,7 @@ export const validateTestResults = (results) => {
   const errors = {};
 
   results.forEach((result, index) => {
-    if (!result.value) {
+    if (result.value === '' || result.value === null || result.value === undefined) {
       errors[`result_${index}`] = 'Value is required';
     }
   });
@@ -29,20 +29,67 @@ export const validateTestResults = (results) => {
   return errors;
 };
 
-export const checkAbnormalValue = (value, normalRange) => {
-  if (!value || !normalRange) return false;
+const parseNumberRange = (normalRange) => {
+  const numbers = normalRange?.match(/[\d.]+/g);
+  if (!numbers || numbers.length === 0) return null;
 
-  const ranges = normalRange.match(/[\d.]+/g);
-  if (!ranges || ranges.length === 0) return false;
+  const min = parseFloat(numbers[0]);
+  const max = numbers.length > 1 ? parseFloat(numbers[1]) : parseFloat(numbers[0]);
+  return { min, max };
+};
 
-  const min = parseFloat(ranges[0]);
-  const max = ranges.length > 1 ? parseFloat(ranges[1]) : parseFloat(ranges[0]);
+export const getAbnormalStatus = (value, normalRange) => {
+  const status = {
+    isAbnormal: false,
+    abnormalType: 'normal'
+  };
+
+  if (value === '' || value === null || value === undefined || Number.isNaN(value) || !normalRange) {
+    return status;
+  }
+
+  const range = parseNumberRange(normalRange);
+  if (!range) return status;
+
+  const { min, max } = range;
 
   if (normalRange.includes('<')) {
-    return value >= min;
+    if (value >= min) {
+      status.isAbnormal = true;
+      status.abnormalType = 'high';
+    }
   } else if (normalRange.includes('>')) {
-    return value <= min;
+    if (value <= min) {
+      status.isAbnormal = true;
+      status.abnormalType = 'low';
+    }
   } else {
-    return value < min || value > max;
+    if (value < min) {
+      status.isAbnormal = true;
+      status.abnormalType = 'low';
+    } else if (value > max) {
+      status.isAbnormal = true;
+      status.abnormalType = 'high';
+    }
   }
+
+  return status;
+};
+
+export const checkAbnormalValue = (value, normalRange) => getAbnormalStatus(value, normalRange).isAbnormal;
+
+export const getAbnormalLabel = (abnormalType) => {
+  if (abnormalType === 'low') return 'LOW';
+  if (abnormalType === 'high') return 'HIGH';
+  return 'NORMAL';
+};
+
+export const getAbnormalCause = (parameterName, abnormalType) => {
+  if (abnormalType === 'high') {
+    return `An elevated ${parameterName} may indicate inflammation, infection, dehydration, or metabolic imbalance.`;
+  }
+  if (abnormalType === 'low') {
+    return `A reduced ${parameterName} may indicate anemia, deficiency, malabsorption, or organ dysfunction.`;
+  }
+  return '';
 };

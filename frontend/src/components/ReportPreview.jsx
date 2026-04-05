@@ -65,7 +65,7 @@ const ReportPreview = ({ report }) => {
                   <td className='text-center py-3 px-2'>{result.unit}</td>
                   <td className='text-center py-3 px-2 text-sm'>{result.normalRange}</td>
                   <td className='text-center py-3 px-2'>
-                    <Badge isAbnormal={result.isAbnormal} />
+                    <Badge isAbnormal={result.isAbnormal} abnormalType={result.abnormalType} />
                   </td>
                 </motion.tr>
               ))}

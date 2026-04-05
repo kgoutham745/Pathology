@@ -1,11 +1,30 @@
 import axios from 'axios';
 
+// Use different base URLs for development and production
+const isDevelopment = import.meta.env.DEV;
+const API_BASE_URL = isDevelopment ? 'http://localhost:5000/api' : '/api';
+
 const API = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   }
 });
+
+API.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
+// Authentication API
+export const authAPI = {
+  login: (data) => API.post('/auth/login', data),
+};
 
 // Reports API
 export const reportAPI = {
@@ -46,10 +65,17 @@ export const labAPI = {
   uploadLogo: (file) => {
     const formData = new FormData();
     formData.append('logo', file);
-    return API.post('/lab/logo', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    return API.post('/lab/logo', formData);
   },
+};
+
+// Admin API
+export const adminAPI = {
+  getAccounts: () => API.get('/admin/accounts'),
+  createAccount: (data) => API.post('/admin/accounts', data),
+  updateAccount: (id, data) => API.put(`/admin/accounts/${id}`, data),
+  deleteAccount: (id) => API.delete(`/admin/accounts/${id}`),
+  toggleAccountStatus: (id, active) => API.patch(`/admin/accounts/${id}/status`, { active })
 };
 
 export default API;

@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 
 const reportSchema = new mongoose.Schema({
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Account',
+    required: false
+  },
   reportId: {
     type: String,
     unique: true,

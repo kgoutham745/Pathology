@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { reportAPI, labAPI } from '../utils/api';
+import { reportAPI, labAPI, testAPI } from '../utils/api';
 import { Card, Button, Input, Select, Textarea, Loading, Alert } from '../components/UIComponents';
+import { generatePDFReport, downloadPDF } from '../utils/pdfGenerator';
 import { validatePatientInfo, validateTestResults, checkAbnormalValue } from '../utils/validators';
 import { testTemplates } from '../data/testTemplates';
 
@@ -11,6 +12,7 @@ const ReportGenerator = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [generatedReport, setGeneratedReport] = useState(null);
 
   // Form States
   const [patient, setPatient] = useState({
@@ -28,6 +30,9 @@ const ReportGenerator = () => {
   const [results, setResults] = useState([]);
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState({});
+  const [availableTests, setAvailableTests] = useState([]);
+  const [templatesLoading, setTemplatesLoading] = useState(true);
+  const [customParameters, setCustomParameters] = useState([]);
 
   useEffect(() => {
     const fetchLabSettings = async () => {
@@ -39,12 +44,29 @@ const ReportGenerator = () => {
       }
     };
 
+    const fetchTemplates = async () => {
+      try {
+        setTemplatesLoading(true);
+        const response = await testAPI.getAll();
+        setAvailableTests(response.data);
+        if (response.data.length > 0) {
+          setSelectedTest(response.data[0].testId);
+        }
+      } catch (error) {
+        console.warn('Failed to load remote templates, using built-in defaults.', error);
+        setAvailableTests(Object.values(testTemplates));
+      } finally {
+        setTemplatesLoading(false);
+      }
+    };
+
     fetchLabSettings();
+    fetchTemplates();
   }, []);
 
   // Initialize results when test changes
   useEffect(() => {
-    const test = testTemplates[selectedTest];
+    const test = availableTests.find((item) => item.testId === selectedTest) || testTemplates[selectedTest];
     if (test) {
       setResults(
         test.parameters.map((param) => ({
@@ -57,7 +79,7 @@ const ReportGenerator = () => {
         }))
       );
     }
-  }, [selectedTest]);
+  }, [selectedTest, availableTests]);
 
   const handlePatientChange = (field, value) => {
     setPatient(prev => ({ ...prev, [field]: value }));
@@ -69,6 +91,42 @@ const ReportGenerator = () => {
     newResults[index].value = value ? parseFloat(value) : '';
     newResults[index].isAbnormal = checkAbnormalValue(newResults[index].value, newResults[index].normalRange);
     setResults(newResults);
+  };
+
+  const addCustomParameter = () => {
+    setCustomParameters([...customParameters, {
+      parameterName: '',
+      value: '',
+      unit: '',
+      normalRange: '',
+      isAbnormal: false
+    }]);
+  };
+
+  const removeCustomParameter = (index) => {
+    setCustomParameters(customParameters.filter((_, i) => i !== index));
+  };
+
+  const updateCustomParameter = (index, field, value) => {
+    const newCustom = [...customParameters];
+    newCustom[index][field] = value;
+    if (field === 'value') {
+      newCustom[index].isAbnormal = checkAbnormalValue(value ? parseFloat(value) : '', newCustom[index].normalRange);
+    }
+    setCustomParameters(newCustom);
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      setLoading(true);
+      const pdf = await generatePDFReport(generatedReport, labSettings);
+      downloadPDF(pdf, `report-${generatedReport.reportId}`);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      setError('Failed to download PDF');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleNextStep = () => {
@@ -93,38 +151,23 @@ const ReportGenerator = () => {
       setLoading(true);
       setError(null);
 
-      const test = testTemplates[selectedTest];
+      const test = availableTests.find((item) => item.testId === selectedTest) || testTemplates[selectedTest];
       const reportData = {
         patient,
         test: {
           testId: selectedTest,
-          testName: test.testName,
-          testType: test.testType
+          testName: test?.testName || '',
+          testType: test?.testType || ''
         },
-        results,
+        results: [...results, ...customParameters.filter(p => p.parameterName && p.value)],
         labDetails: labSettings || {},
         notes
       };
 
       const response = await reportAPI.create(reportData);
+      setGeneratedReport(response.data);
       setSuccess(true);
-
-      // Reset form
-      setTimeout(() => {
-        setStep(1);
-        setPatient({
-          name: '',
-          age: '',
-          gender: 'Male',
-          patientId: '',
-          doctorName: '',
-          sampleCollectionDate: '',
-          contactNo: '',
-          email: ''
-        });
-        setNotes('');
-        setSuccess(false);
-      }, 2000);
+      setStep(4); // Go to success step
     } catch (err) {
       setError('Failed to create report: ' + (err.response?.data?.error || err.message));
     } finally {
@@ -142,7 +185,7 @@ const ReportGenerator = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        {[1, 2, 3].map((s) => (
+        {[1, 2, 3, 4].map((s) => (
           <div key={s} className='flex items-center flex-1'>
             <motion.div
               className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
@@ -152,7 +195,7 @@ const ReportGenerator = () => {
             >
               {s}
             </motion.div>
-            {s < 3 && (
+            {s < 4 && (
               <div
                 className={`flex-1 h-1 mx-2 ${s < step ? 'bg-blue-600' : 'bg-gray-300'}`}
               />
@@ -166,6 +209,7 @@ const ReportGenerator = () => {
         <span className={step >= 1 ? 'text-blue-600' : 'text-gray-400'}>Patient Info</span>
         <span className={step >= 2 ? 'text-blue-600' : 'text-gray-400'}>Select Test</span>
         <span className={step >= 3 ? 'text-blue-600' : 'text-gray-400'}>Enter Results</span>
+        <span className={step >= 4 ? 'text-blue-600' : 'text-gray-400'}>Complete</span>
       </div>
 
       {error && <Alert type='error' message={error} />}
@@ -248,20 +292,21 @@ const ReportGenerator = () => {
           <Card>
             <h2 className='text-2xl font-bold mb-6'>Select Test Type</h2>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              {Object.entries(testTemplates).map(([key, test]) => (
+              {availableTests.map((test) => (
                 <motion.div
-                  key={key}
-                  onClick={() => setSelectedTest(key)}
+                  key={test.testId}
+                  onClick={() => setSelectedTest(test.testId)}
                   className={`p-4 rounded-lg cursor-pointer transition-all ${
-                    selectedTest === key
+                    selectedTest === test.testId
                       ? 'bg-blue-100 dark:bg-blue-900 border-2 border-blue-600'
                       : 'bg-gray-100 dark:bg-gray-700 border-2 border-transparent hover:border-blue-400'
                   }`}
                   whileHover={{ scale: 1.02 }}
                 >
                   <h3 className='font-bold text-lg'>{test.testName}</h3>
-                  <p className='text-sm text-gray-600 dark:text-gray-400'>{test.testType}</p>
-                  <p className='text-xs mt-2 text-gray-500'>{test.parameters.length} parameters</p>
+                  <p className='text-sm font-semibold text-blue-600 dark:text-blue-400 uppercase'>{test.testType}</p>
+                  <p className='text-xs mt-2 text-gray-500'>{test.parameters?.length || 0} parameters</p>
+                  <p className='text-xs text-gray-500'>Sample: {test.sampleType}</p>
                 </motion.div>
               ))}
             </div>
@@ -269,10 +314,10 @@ const ReportGenerator = () => {
             {/* Test Details */}
             <div className='mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg'>
               <h3 className='font-bold mb-2'>Selected Test Details</h3>
-              <p><span className='font-semibold'>Test:</span> {testTemplates[selectedTest]?.testName}</p>
-              <p><span className='font-semibold'>Type:</span> {testTemplates[selectedTest]?.testType}</p>
-              <p><span className='font-semibold'>Sample:</span> {testTemplates[selectedTest]?.sampleType}</p>
-              <p><span className='font-semibold'>Turnaround:</span> {testTemplates[selectedTest]?.turnaroundTime}</p>
+              <p><span className='font-semibold'>Test:</span> {availableTests.find((item) => item.testId === selectedTest)?.testName}</p>
+              <p><span className='font-semibold'>Type:</span> {availableTests.find((item) => item.testId === selectedTest)?.testType}</p>
+              <p><span className='font-semibold'>Sample:</span> {availableTests.find((item) => item.testId === selectedTest)?.sampleType}</p>
+              <p><span className='font-semibold'>Turnaround:</span> {availableTests.find((item) => item.testId === selectedTest)?.turnaroundTime}</p>
             </div>
           </Card>
         </motion.div>
@@ -332,12 +377,130 @@ const ReportGenerator = () => {
               rows={4}
             />
           </Card>
+
+          <Card>
+            <h2 className='text-lg font-bold mb-4'>Custom Parameters</h2>
+            <div className='space-y-4'>
+              {customParameters.map((param, index) => (
+                <motion.div
+                  key={index}
+                  className='grid grid-cols-1 md:grid-cols-6 gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg'
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Input
+                    placeholder='Parameter Name'
+                    value={param.parameterName}
+                    onChange={(e) => updateCustomParameter(index, 'parameterName', e.target.value)}
+                  />
+                  <Input
+                    placeholder='Value'
+                    type='number'
+                    value={param.value}
+                    onChange={(e) => updateCustomParameter(index, 'value', e.target.value)}
+                  />
+                  <Input
+                    placeholder='Unit'
+                    value={param.unit}
+                    onChange={(e) => updateCustomParameter(index, 'unit', e.target.value)}
+                  />
+                  <Input
+                    placeholder='Normal Range'
+                    value={param.normalRange}
+                    onChange={(e) => updateCustomParameter(index, 'normalRange', e.target.value)}
+                  />
+                  <div className='flex items-end'>
+                    {param.value && (
+                      <span className={`px-3 py-2 rounded-full text-xs font-bold ${
+                        param.isAbnormal
+                          ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                          : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                      }`}>
+                        {param.isAbnormal ? 'HIGH' : 'NORMAL'}
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    onClick={() => removeCustomParameter(index)}
+                    variant='danger'
+                    size='sm'
+                  >
+                    Remove
+                  </Button>
+                </motion.div>
+              ))}
+              <Button
+                onClick={addCustomParameter}
+                variant='secondary'
+                size='sm'
+              >
+                Add Custom Parameter
+              </Button>
+            </div>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Step 4: Success and Actions */}
+      {step === 4 && generatedReport && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className='space-y-6'>
+          <Card>
+            <div className='text-center'>
+              <div className='w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4'>
+                <svg className='w-8 h-8 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                </svg>
+              </div>
+              <h2 className='text-2xl font-bold text-green-600 mb-2'>Report Generated Successfully!</h2>
+              <p className='text-gray-600 dark:text-gray-400 mb-6'>
+                Report ID: {generatedReport.reportId}
+              </p>
+              
+              <div className='flex flex-wrap gap-4 justify-center'>
+                <Button
+                  onClick={() => window.open(`/report/${generatedReport._id}`, '_blank')}
+                  variant='primary'
+                  size='lg'
+                >
+                  View Report
+                </Button>
+                <Button
+                  onClick={handleDownloadPDF}
+                  variant='secondary'
+                  size='lg'
+                  disabled={loading}
+                >
+                  {loading ? 'Downloading...' : 'Download PDF'}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setStep(1);
+                    setGeneratedReport(null);
+                    setSuccess(false);
+                    setCustomParameters([]);
+                  }}
+                  variant='outline'
+                  size='lg'
+                >
+                  Create New Report
+                </Button>
+                <Button
+                  onClick={() => setStep(3)}
+                  variant='outline'
+                  size='lg'
+                >
+                  Edit This Report
+                </Button>
+              </div>
+            </div>
+          </Card>
         </motion.div>
       )}
 
       {/* Action Buttons */}
       <div className='flex gap-4 justify-end'>
-        {step > 1 && (
+        {step > 1 && step < 4 && (
           <Button
             onClick={() => setStep(step - 1)}
             variant='secondary'

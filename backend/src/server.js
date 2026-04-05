@@ -2,18 +2,23 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import reportRoutes from './routes/reportRoutes.js';
 import patientRoutes from './routes/patientRoutes.js';
 import labRoutes from './routes/labRoutes.js';
 import testRoutes from './routes/testRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import accountRoutes from './routes/accountRoutes.js';
+import { authenticate, authorize } from './middleware/authMiddleware.js';
 
 dotenv.config();
 
 const app = express();
 
 // Middleware
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:3001')
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:3001,http://localhost:5000')
   .split(',')
   .map(origin => origin.trim())
   .filter(Boolean);
@@ -63,15 +68,33 @@ const connectDatabase = async () => {
 const startApp = async () => {
   await connectDatabase();
 
-  // Routes
-  app.use('/api/reports', reportRoutes);
-  app.use('/api/patients', patientRoutes);
-  app.use('/api/lab', labRoutes);
-  app.use('/api/tests', testRoutes);
+  // Authentication route
+  app.use('/api/auth', authRoutes);
 
   // Health check
   app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Pathology Report Generator API is running' });
+  });
+
+  // Account management for master admin only
+  app.use('/api/admin/accounts', authenticate, authorize('master'), accountRoutes);
+
+  // Protected API routes for customers and master
+  app.use('/api/reports', authenticate, reportRoutes);
+  app.use('/api/patients', authenticate, patientRoutes);
+  app.use('/api/lab', authenticate, labRoutes);
+  app.use('/api/tests', authenticate, testRoutes);
+
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const frontendDist = path.resolve(__dirname, '../../frontend/dist');
+
+  app.use(express.static(frontendDist));
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ error: 'API route not found' });
+    }
+    res.sendFile(path.join(frontendDist, 'index.html'));
   });
 
   // Error handling middleware

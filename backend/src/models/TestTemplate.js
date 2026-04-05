@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 
 const testTemplateSchema = new mongoose.Schema({
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Account'
+  },
   testId: {
     type: String,
     unique: true,

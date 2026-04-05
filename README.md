@@ -47,7 +47,51 @@ pathology/
     ├── public/
     ├── package.json
     ├── vite.config.js
-    ├── tailwind.config.js
+## 🧪 Testing
+
+### Automated Tests
+```bash
+# Test production build
+npm run test
+
+# Test development servers
+npm run test:dev
+```
+
+### Manual Testing Checklist
+1. **Server Startup**
+   - ✅ Production: `npm start` (serves on port 5000)
+   - ✅ Development: `npm run dev` (frontend:3000, backend:5000)
+
+2. **Core Functionality**
+   - ✅ Open app in browser (http://localhost:5000 or http://localhost:3000)
+   - ✅ Navigate to Report Generator page
+   - ✅ Fill patient information form
+   - ✅ Select test type (CBC, LFT, etc.)
+   - ✅ Enter test result values
+   - ✅ Add custom parameters (click "Add Custom Parameter")
+   - ✅ Remove custom parameters (click "Remove" button)
+   - ✅ Generate report (click "Generate Report")
+   - ✅ Download PDF (click "Download PDF")
+
+3. **Error Handling**
+   - ✅ Form validation (required fields)
+   - ✅ API error handling
+   - ✅ Network connectivity issues
+   - ✅ Invalid data formats
+
+4. **UI/UX**
+   - ✅ Responsive design (mobile/desktop)
+   - ✅ Dark mode toggle
+   - ✅ Loading states
+   - ✅ Success/error messages
+   - ✅ Form navigation (step-by-step)
+
+### Common Issues & Fixes
+- **JavaScript Errors**: Make sure to rebuild after code changes (`npm run build`)
+- **API Connection**: Check CORS settings and server logs
+- **PDF Generation**: Ensure all required fields are filled
+- **Custom Parameters**: Test add/remove functionality thoroughly
     └── index.html
 ```
 

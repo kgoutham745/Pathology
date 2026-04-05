@@ -35,6 +35,51 @@ export const testTemplates = {
         description: 'White blood cells count'
       },
       {
+        parameterId: 'neutrophils',
+        parameterName: 'Neutrophils',
+        unit: '%',
+        normalRange: '50-70',
+        normalRangeMin: 50,
+        normalRangeMax: 70,
+        description: 'Neutrophil percentage'
+      },
+      {
+        parameterId: 'lymphocytes',
+        parameterName: 'Lymphocytes',
+        unit: '%',
+        normalRange: '20-40',
+        normalRangeMin: 20,
+        normalRangeMax: 40,
+        description: 'Lymphocyte percentage'
+      },
+      {
+        parameterId: 'eosinophils',
+        parameterName: 'Eosinophils',
+        unit: '%',
+        normalRange: '1-6',
+        normalRangeMin: 1,
+        normalRangeMax: 6,
+        description: 'Eosinophil percentage'
+      },
+      {
+        parameterId: 'monocytes',
+        parameterName: 'Monocytes',
+        unit: '%',
+        normalRange: '2-8',
+        normalRangeMin: 2,
+        normalRangeMax: 8,
+        description: 'Monocyte percentage'
+      },
+      {
+        parameterId: 'basophils',
+        parameterName: 'Basophils',
+        unit: '%',
+        normalRange: '0-1',
+        normalRangeMin: 0,
+        normalRangeMax: 1,
+        description: 'Basophil percentage'
+      },
+      {
         parameterId: 'platelet',
         parameterName: 'Platelet Count',
         unit: 'lakh/cmm',
@@ -51,6 +96,33 @@ export const testTemplates = {
         normalRangeMin: 41,
         normalRangeMax: 53,
         description: 'Percentage of red blood cells'
+      },
+      {
+        parameterId: 'mcv',
+        parameterName: 'MCV',
+        unit: 'fL',
+        normalRange: '80-100',
+        normalRangeMin: 80,
+        normalRangeMax: 100,
+        description: 'Mean corpuscular volume'
+      },
+      {
+        parameterId: 'mch',
+        parameterName: 'MCH',
+        unit: 'pg',
+        normalRange: '27-32',
+        normalRangeMin: 27,
+        normalRangeMax: 32,
+        description: 'Mean corpuscular hemoglobin'
+      },
+      {
+        parameterId: 'mchc',
+        parameterName: 'MCHC',
+        unit: 'g/dL',
+        normalRange: '32-36',
+        normalRangeMin: 32,
+        normalRangeMax: 36,
+        description: 'Mean corpuscular hemoglobin concentration'
       }
     ]
   },

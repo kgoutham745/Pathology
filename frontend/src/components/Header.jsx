@@ -3,22 +3,34 @@ import { motion } from 'framer-motion';
 import { Menu, X, Moon, Sun, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useThemeStore from '../context/themeStore';
+import useAuthStore from '../context/authStore';
 
 const Header = () => {
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme, initTheme } = useThemeStore();
+  const logout = useAuthStore((state) => state.logout);
+  const isLoggedIn = useAuthStore((state) => !!state.token);
+  const user = useAuthStore((state) => state.user);
   const [menuOpen, setMenuOpen] = useState(false);
 
   React.useEffect(() => {
     initTheme();
   }, []);
 
-  const menuItems = [
-    { label: 'Dashboard', path: '/' },
-    { label: 'Generate Report', path: '/generate' },
-    { label: 'Report History', path: '/history' },
-    { label: 'Lab Settings', path: '/settings' }
-  ];
+  const menuItems = isLoggedIn
+    ? [
+        { label: 'Dashboard', path: '/' },
+        { label: 'Generate Report', path: '/generate' },
+        { label: 'Report History', path: '/history' },
+        { label: 'Lab Settings', path: '/settings' },
+        ...(user?.role === 'master' ? [{ label: 'Admin', path: '/admin' }] : [])
+      ]
+    : [{ label: 'Login', path: '/login' }];
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <motion.header
@@ -53,6 +65,16 @@ const Header = () => {
               {item.label}
             </motion.button>
           ))}
+          {isLoggedIn && (
+            <motion.button
+              onClick={handleLogout}
+              className='flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 transition-colors'
+              whileHover={{ scale: 1.05 }}
+            >
+              <LogOut size={16} />
+              Logout
+            </motion.button>
+          )}
         </div>
 
         {/* Theme Toggle & Mobile Menu */}
@@ -95,6 +117,18 @@ const Header = () => {
               {item.label}
             </motion.button>
           ))}
+          {isLoggedIn && (
+            <motion.button
+              onClick={() => {
+                handleLogout();
+                setMenuOpen(false);
+              }}
+              className='block w-full text-left px-4 py-2 hover:bg-blue-600 rounded-lg'
+              whileHover={{ x: 10 }}
+            >
+              Logout
+            </motion.button>
+          )}
         </motion.div>
       )}
     </motion.header>

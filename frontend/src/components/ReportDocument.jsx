@@ -19,6 +19,11 @@ const normalizeResults = (results = []) => results.map((result) => ({
   possibleCause: result.possibleCause || ''
 }));
 
+const getOptionalText = (value) => {
+  if (typeof value !== 'string') return '';
+  return value.trim();
+};
+
 export const buildReportDocumentModel = (report, labSettings = {}) => ({
   headerTitle: report?.labDetails?.headerTitle || labSettings?.headerTitle || labSettings?.labName || 'Pathora Labs',
   headerSubtitle: report?.labDetails?.headerSubtitle || labSettings?.headerSubtitle || 'Precision diagnostics with presentation-ready reporting',
@@ -32,11 +37,11 @@ export const buildReportDocumentModel = (report, labSettings = {}) => ({
   sampleDate: report?.dates?.sampleCollectionDate || report?.patient?.sampleCollectionDate || new Date().toISOString(),
   patient: {
     name: report?.patient?.name || 'Aarav Kumar',
-    patientId: report?.patient?.patientId || 'PAT-1042',
+    patientId: getOptionalText(report?.patient?.patientId),
     age: report?.patient?.age || '32',
     gender: report?.patient?.gender || 'Male',
-    doctorName: report?.patient?.doctorName || 'Dr. Mehta',
-    contactNo: report?.patient?.contactNo || '+91 98765 43210'
+    doctorName: getOptionalText(report?.patient?.doctorName),
+    contactNo: getOptionalText(report?.patient?.contactNo)
   },
   test: {
     testName: report?.test?.testName || 'Complete Blood Count',

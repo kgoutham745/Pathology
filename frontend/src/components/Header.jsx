@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Menu, X, LogOut, Home, FileText, Clock, Settings, ShieldCheck, FlaskConical, Info, Sparkles } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -11,6 +11,21 @@ const Header = () => {
   const isLoggedIn = useAuthStore((state) => !!state.token);
   const user = useAuthStore((state) => state.user);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    const { overflow } = document.body.style;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = overflow;
+    };
+  }, [menuOpen]);
 
   const menuItems = isLoggedIn
     ? [
@@ -81,29 +96,84 @@ const Header = () => {
           </div>
         </div>
 
-        {menuOpen && (
-          <motion.div className='space-y-2 border-t border-slate-200 px-4 py-4' initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => {
-                    navigate(item.path);
-                    setMenuOpen(false);
-                  }}
-                  className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium ${
-                    location.pathname === item.path ? 'bg-violet-700 text-white' : 'bg-slate-50 text-slate-700'
-                  }`}
-                >
-                  <Icon size={18} />
-                  {item.label}
-                </button>
-              );
-            })}
-          </motion.div>
-        )}
       </motion.header>
+
+      {menuOpen && (
+        <div className='fixed inset-0 z-50 md:hidden'>
+          <motion.button
+            type='button'
+            aria-label='Close navigation menu'
+            className='absolute inset-0 bg-slate-950/45 backdrop-blur-[2px]'
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setMenuOpen(false)}
+          />
+
+          <motion.aside
+            className='absolute right-0 top-0 flex h-full w-full max-w-full flex-col bg-[linear-gradient(180deg,#4c1d95_0%,#312e81_55%,#1e1b4b_100%)] px-4 pb-5 pt-4 text-white shadow-[-18px_0_45px_rgba(15,23,42,0.28)] sm:w-[min(82vw,20rem)]'
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', stiffness: 280, damping: 30 }}
+          >
+            <div className='flex items-center justify-between gap-3'>
+              <button className='flex min-w-0 items-center gap-3 text-left' onClick={() => navigate('/')}>
+                <img src='/pathora-logo.svg' alt='Pathora Labs logo' className='h-11 w-11 rounded-2xl shadow-lg' />
+                <div className='min-w-0'>
+                  <h2 className='truncate text-base font-bold text-white'>Pathora Labs</h2>
+                  <p className='truncate text-xs text-violet-100/80'>Smart pathology workspace</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => setMenuOpen(false)}
+                className='rounded-xl p-2 text-violet-100 transition hover:bg-white/10 hover:text-white'
+                aria-label='Close navigation menu'
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className='mt-5'>
+              {isLoggedIn && <UserMeta />}
+            </div>
+
+            <nav className='mt-5 flex-1 space-y-2 overflow-y-auto pb-4'>
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => {
+                      navigate(item.path);
+                      setMenuOpen(false);
+                    }}
+                    className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium transition ${
+                      location.pathname === item.path
+                        ? 'bg-white text-slate-900 shadow-[0_12px_24px_rgba(15,39,64,0.14)]'
+                        : 'bg-white/8 text-slate-100 hover:bg-white/14'
+                    }`}
+                  >
+                    <Icon size={18} />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </nav>
+
+            {isLoggedIn && (
+              <button
+                onClick={handleLogout}
+                className='mt-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-white/12 px-4 py-3 font-semibold text-white ring-1 ring-white/15 transition hover:bg-white/18'
+              >
+                <LogOut size={18} />
+                Logout
+              </button>
+            )}
+          </motion.aside>
+        </div>
+      )}
 
       <aside className='hidden min-h-screen w-80 shrink-0 flex-col bg-[linear-gradient(180deg,#4c1d95_0%,#312e81_55%,#1e1b4b_100%)] px-5 py-6 text-white md:flex'>
         <button className='flex items-center gap-4 rounded-[28px] bg-white/10 px-5 py-5 text-left' onClick={() => navigate('/')}>

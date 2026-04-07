@@ -40,11 +40,11 @@ function App() {
     <div>
       <Router>
         <div className='min-h-screen text-slate-900'>
-          <div className='flex min-h-screen'>
+          <div className='flex min-h-screen flex-col md:flex-row'>
             <Header />
 
-            <div className='flex-1 flex flex-col'>
-              <main className='flex-1 max-w-full w-full mx-auto px-4 py-6 md:px-8 md:py-8'>
+            <div className='flex min-w-0 flex-1 flex-col'>
+              <main className='flex-1 w-full max-w-full overflow-x-hidden px-3 py-4 sm:px-4 sm:py-6 md:px-8 md:py-8'>
                 <Routes>
                   <Route path='/login' element={<Login />} />
                   <Route path='/about' element={<About />} />

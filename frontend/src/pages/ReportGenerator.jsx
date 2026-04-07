@@ -394,7 +394,9 @@ const ReportGenerator = () => {
                     ? item.id < step
                       ? 'bg-[linear-gradient(135deg,#6d28d9,#4338ca)]'
                       : 'bg-violet-100'
-                    : 'bg-violet-100'
+                    : step >= item.id
+                      ? 'bg-[linear-gradient(135deg,#6d28d9,#4338ca)]'
+                      : 'bg-violet-100'
                 }`}
               />
             </div>

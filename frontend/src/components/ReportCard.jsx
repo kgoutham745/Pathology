@@ -41,22 +41,22 @@ const ReportCard = ({ report, onDelete, onEdit, onView }) => {
   return (
     <>
       <motion.div
-        className='bg-white dark:bg-gray-800 rounded-lg shadow-soft p-6 card-hover'
+        className='card-hover rounded-[24px] bg-white p-4 shadow-[0_18px_45px_rgba(15,39,64,0.08)] sm:p-6'
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div className='flex justify-between items-start mb-4'>
-          <div className='flex-1'>
+        <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+          <div className='min-w-0 flex-1'>
             <h3 className='text-lg font-bold text-gray-900 dark:text-white'>{report.patient.name}</h3>
             <p className='text-sm text-gray-500 dark:text-gray-400'>Report ID: {report.reportId}</p>
           </div>
-          <div className='text-xs bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-100 px-3 py-1 rounded-full'>
+          <div className='w-fit max-w-full rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-800'>
             {report.test.testName}
           </div>
         </div>
 
-        <div className='grid grid-cols-2 gap-4 mb-4 text-sm'>
+        <div className='mb-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2'>
           <div>
             <p className='text-gray-500 dark:text-gray-400'>Patient ID</p>
             <p className='font-semibold text-gray-900 dark:text-white'>{report.patient.patientId}</p>
@@ -79,12 +79,12 @@ const ReportCard = ({ report, onDelete, onEdit, onView }) => {
           </div>
         </div>
 
-        <div className='flex gap-3'>
+        <div className='grid grid-cols-2 gap-3 lg:flex'>
           <Button
             onClick={() => onView(report)}
             variant='secondary'
             size='sm'
-            className='flex-1 flex items-center justify-center gap-2'
+            className='w-full flex-1'
           >
             <Eye size={16} /> View
           </Button>
@@ -92,7 +92,7 @@ const ReportCard = ({ report, onDelete, onEdit, onView }) => {
             onClick={() => onEdit(report)}
             variant='secondary'
             size='sm'
-            className='flex-1 flex items-center justify-center gap-2'
+            className='w-full flex-1'
           >
             <Edit size={16} /> Edit
           </Button>
@@ -100,7 +100,7 @@ const ReportCard = ({ report, onDelete, onEdit, onView }) => {
             onClick={handleDownloadPDF}
             variant='primary'
             size='sm'
-            className='flex-1 flex items-center justify-center gap-2'
+            className='w-full flex-1'
           >
             <Download size={16} /> PDF
           </Button>
@@ -108,7 +108,7 @@ const ReportCard = ({ report, onDelete, onEdit, onView }) => {
             onClick={() => setShowDeleteConfirm(true)}
             variant='danger'
             size='sm'
-            className='flex-1 flex items-center justify-center gap-2'
+            className='w-full flex-1'
           >
             <Trash2 size={16} />
           </Button>

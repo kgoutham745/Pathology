@@ -83,11 +83,12 @@ const ReportHistory = () => {
           <p className='text-gray-600 dark:text-gray-400'>Total: {filteredReports.length} reports</p>
         </div>
 
-        <div className='flex gap-2'>
+        <div className='flex w-full flex-col gap-2 sm:w-auto sm:flex-row'>
           <Button
             onClick={() => setViewMode('card')}
             variant={viewMode === 'card' ? 'primary' : 'secondary'}
             size='sm'
+            className='w-full sm:w-auto'
           >
             Card View
           </Button>
@@ -95,6 +96,7 @@ const ReportHistory = () => {
             onClick={() => setViewMode('table')}
             variant={viewMode === 'table' ? 'primary' : 'secondary'}
             size='sm'
+            className='w-full sm:w-auto'
           >
             Table View
           </Button>
@@ -194,8 +196,8 @@ const ReportHistory = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
               >
-                <Card className='overflow-hidden p-5'>
-                  <div className='flex justify-between items-center mb-4'>
+                <Card className='overflow-hidden p-4 sm:p-5'>
+                  <div className='mb-4 flex items-center justify-between gap-3'>
                     <h3 className='font-bold text-lg'>Preview</h3>
                     <button
                       onClick={() => setSelectedReport(null)}
@@ -208,7 +210,7 @@ const ReportHistory = () => {
                 </Card>
               </motion.div>
             ) : (
-              <Card>
+              <Card className='p-5'>
                 <p className='text-center text-gray-500 dark:text-gray-400 py-8'>
                   Select a report to preview
                 </p>
